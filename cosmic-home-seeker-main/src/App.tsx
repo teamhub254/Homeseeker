@@ -10,6 +10,7 @@ import Register from "./pages/Register";
 import Explore from "./pages/Explore";
 import ListProperty from "./pages/ListProperty";
 import NotFound from "./pages/NotFound";
+import ListerRegister from "./pages/ListerRegister"
 import React from "react";
 
 const queryClient = new QueryClient();
@@ -27,6 +28,13 @@ const App = () => (
             <Route path="/Register" element={<Register />} />
             <Route path="/explore" element={<Explore />} />
             <Route path="/list-property" element={<ListProperty />} />
+
+            <Route path="/ListerRegister" element={<ListerRegister />} />
+            <Route path="/" element={<ListProperty />} />
+            <Route path="/" element={<ListProperty />} />
+            <Route path="/" element={<ListProperty />} />
+            <Route path="/" element={<ListProperty />} />
+            <Route path="/" element={<ListProperty />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
