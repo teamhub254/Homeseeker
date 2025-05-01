@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/api/supabase";// this is for the database
 import { Mail, Lock } from "lucide-react";
-import Navbar from "@/components/Navbar";
+import Navbar from "@/components/loginnavbar";
 import Footer from "@/components/Footer";
 
 const Login = () => {
@@ -33,7 +33,7 @@ const Login = () => {
       toast.error(error.message || "Login failed.");
     } else {
       toast.success("Logged in successfully!");
-      navigate("/Explore"); // hapa tunafaa tujue vile the landlord and tenant are not on the same page after loging in 
+      navigate("/Explore");//jua vile the landlord and tenant are not on the same page after loging in 
     }
   };
 
@@ -96,6 +96,13 @@ const Login = () => {
             Don’t have an account?{" "}
             <Link to="/register" className="text-habix-purple hover:underline">
               Sign up
+            </Link>
+          </p>
+
+          <p className="text-center text-gray-400 text-sm mt-2">
+            Want to list your property?{" "}
+            <Link to="/listerregister" className="text-habix-purple hover:underline">
+              Sign up as a lister
             </Link>
           </p>
         </div>
