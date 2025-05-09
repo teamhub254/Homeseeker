@@ -40,17 +40,17 @@ const MyInquiries = () => {
   const fetchInquiries = async () => {
     try {
       setLoading(true);
-      
+
       if (!user) return;
-      
+
       const { data, error } = await supabase
         .from("property_inquiries")
         .select("*")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
-        
+
       if (error) throw error;
-      
+
       setInquiries(data);
     } catch (error) {
       console.error("Error fetching inquiries:", error);
@@ -80,10 +80,10 @@ const MyInquiries = () => {
     <AuthGuard>
       <div className="min-h-screen bg-gray-50">
         <Navbar />
-        
+
         <div className="container mx-auto py-12 px-4">
           <h1 className="text-2xl font-bold text-nest-dark mb-8">My Inquiries</h1>
-          
+
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-nest-primary"></div>
@@ -138,10 +138,10 @@ const MyInquiries = () => {
             </div>
           )}
         </div>
-        
+
         <footer className="bg-nest-dark py-8 px-4 text-white mt-auto">
           <div className="container mx-auto text-center">
-            <p>&copy; {new Date().getFullYear()} NestQuestHub. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} Vastiqa. All rights reserved.</p>
           </div>
         </footer>
       </div>

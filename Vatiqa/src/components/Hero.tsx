@@ -5,10 +5,10 @@ import { Home } from "lucide-react";
 
 const Hero = () => {
   return (
-    <section 
+    <section
       className="relative bg-gradient-to-r from-nest-primary to-nest-secondary py-24 px-4 text-white overflow-hidden"
       style={{
-        backgroundImage: `linear-gradient(to right, rgba(74, 144, 226, 0.85), rgba(42, 183, 202, 0.85)), url(https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&q=80&w=1600&h=800)`,
+        backgroundImage: `linear-gradient(to right, rgba(74, 144, 226, 0.85), rgba(42, 183, 202, 0.85)), url(https://unsplash.com/photos/black-wooden-table-on-rug-mGZX2MOPR-s)-`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
       }}
@@ -25,18 +25,18 @@ const Hero = () => {
             Find Your Dream Home
           </h1>
           <p className="text-lg md:text-xl opacity-90 mb-8">
-            Discover thousands of properties for sale and rent across the country. 
+            Discover thousands of properties for sale and rent across the country.
             Your perfect home is just a search away.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Button 
+            <Button
               className="bg-white text-nest-primary hover:bg-white/90"
               size="lg"
             >
               For Sale
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="border-white text-white hover:bg-white hover:text-nest-primary"
               size="lg"
             >
@@ -44,7 +44,7 @@ const Hero = () => {
             </Button>
           </div>
         </div>
-        
+
         {/* Search Bar */}
         <div className="relative z-10 -mb-24">
           <SearchBar />

@@ -12,23 +12,23 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
-  
+
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Login with:", { email, password });
     // In a real app, this would connect to authentication system
   };
-  
+
   const handleSignup = (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Signup with:", { name, email, password });
     // In a real app, this would connect to authentication system
   };
-  
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      
+
       <div className="container mx-auto py-12 px-4">
         <div className="max-w-md mx-auto">
           <div className="mb-8 text-center">
@@ -37,19 +37,19 @@ const Login = () => {
                 <User className="h-6 w-6 text-nest-primary" />
               </div>
             </div>
-            <h1 className="text-2xl font-bold text-nest-dark">Welcome to NestQuestHub</h1>
+            <h1 className="text-2xl font-bold text-nest-dark">Welcome to Vastiqa</h1>
             <p className="text-muted-foreground mt-2">
               Sign in to your account or create a new one
             </p>
           </div>
-          
+
           <div className="bg-white rounded-lg shadow p-6">
             <Tabs defaultValue="login" className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-6">
                 <TabsTrigger value="login">Login</TabsTrigger>
                 <TabsTrigger value="signup">Sign Up</TabsTrigger>
               </TabsList>
-              
+
               <TabsContent value="login">
                 <form onSubmit={handleLogin} className="space-y-4">
                   <div className="space-y-2">
@@ -69,7 +69,7 @@ const Login = () => {
                       />
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <label htmlFor="password" className="text-sm font-medium">
@@ -99,11 +99,11 @@ const Login = () => {
                       </button>
                     </div>
                   </div>
-                  
+
                   <Button type="submit" className="w-full bg-nest-primary hover:bg-nest-primary/90">
                     Sign In
                   </Button>
-                  
+
                   <div className="relative my-6">
                     <div className="absolute inset-0 flex items-center">
                       <div className="w-full border-t border-gray-200"></div>
@@ -112,7 +112,7 @@ const Login = () => {
                       <span className="bg-white px-2 text-muted-foreground">Or continue with</span>
                     </div>
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-4">
                     <Button variant="outline" className="w-full">
                       <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
@@ -144,7 +144,7 @@ const Login = () => {
                   </div>
                 </form>
               </TabsContent>
-              
+
               <TabsContent value="signup">
                 <form onSubmit={handleSignup} className="space-y-4">
                   <div className="space-y-2">
@@ -164,7 +164,7 @@ const Login = () => {
                       />
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <label htmlFor="signup-email" className="text-sm font-medium">
                       Email Address
@@ -182,7 +182,7 @@ const Login = () => {
                       />
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <label htmlFor="signup-password" className="text-sm font-medium">
                       Password
@@ -207,7 +207,7 @@ const Login = () => {
                       </button>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center space-x-2">
                     <input
                       type="checkbox"
@@ -226,11 +226,11 @@ const Login = () => {
                       </a>
                     </label>
                   </div>
-                  
+
                   <Button type="submit" className="w-full bg-nest-primary hover:bg-nest-primary/90">
                     Create Account
                   </Button>
-                  
+
                   <div className="relative my-6">
                     <div className="absolute inset-0 flex items-center">
                       <div className="w-full border-t border-gray-200"></div>
@@ -239,7 +239,7 @@ const Login = () => {
                       <span className="bg-white px-2 text-muted-foreground">Or continue with</span>
                     </div>
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-4">
                     <Button variant="outline" className="w-full">
                       <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
@@ -275,11 +275,11 @@ const Login = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Footer */}
       <footer className="bg-nest-dark py-8 px-4 text-white mt-auto">
         <div className="container mx-auto text-center">
-          <p>&copy; {new Date().getFullYear()} NestQuestHub. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Vastiqa. All rights reserved.</p>
         </div>
       </footer>
     </div>

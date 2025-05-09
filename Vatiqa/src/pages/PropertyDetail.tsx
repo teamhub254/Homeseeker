@@ -38,7 +38,7 @@ const PropertyDetail = () => {
   });
   const { user } = useAuth();
   const navigate = useNavigate();
-  
+
   const property = properties.find(p => p.id === id);
 
   useEffect(() => {
@@ -49,7 +49,7 @@ const PropertyDetail = () => {
 
   const checkIfPropertyIsSaved = async () => {
     if (!user || !property) return;
-    
+
     try {
       const { data, error } = await supabase
         .from('saved_properties')
@@ -57,9 +57,9 @@ const PropertyDetail = () => {
         .eq('user_id', user.id)
         .eq('property_id', property.id)
         .maybeSingle();
-      
+
       if (error) throw error;
-      
+
       setIsSaved(!!data);
     } catch (error) {
       console.error('Error checking saved property:', error);
@@ -75,12 +75,12 @@ const PropertyDetail = () => {
       navigate('/login?redirectTo=' + encodeURIComponent(window.location.pathname));
       return;
     }
-    
+
     if (!property) return;
-    
+
     try {
       setIsLoading(true);
-      
+
       if (isSaved) {
         // Unsave property
         const { error } = await supabase
@@ -88,9 +88,9 @@ const PropertyDetail = () => {
           .delete()
           .eq('user_id', user.id)
           .eq('property_id', property.id);
-        
+
         if (error) throw error;
-        
+
         setIsSaved(false);
         toast({
           title: "Property removed",
@@ -106,9 +106,9 @@ const PropertyDetail = () => {
               property_id: property.id
             }
           ]);
-        
+
         if (error) throw error;
-        
+
         setIsSaved(true);
         toast({
           title: "Property saved",
@@ -154,31 +154,31 @@ const PropertyDetail = () => {
 
   const handleContactFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!property) return;
-    
+
     try {
       setIsLoading(true);
-      
+
       const formData = {
         ...contactFormData,
         user_id: user?.id || null,
         property_id: property.id
       };
-      
+
       const { error } = await supabase
         .from('property_inquiries')
         .insert([formData]);
-      
+
       if (error) throw error;
-      
+
       setContactFormData({
         name: '',
         email: '',
         phone: '',
         message: ''
       });
-      
+
       toast({
         title: "Inquiry sent",
         description: "Your message has been sent to the property owner",
@@ -194,7 +194,7 @@ const PropertyDetail = () => {
       setIsLoading(false);
     }
   };
-  
+
   if (!property) {
     return (
       <div className="min-h-screen">
@@ -208,11 +208,11 @@ const PropertyDetail = () => {
       </div>
     );
   }
-  
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      
+
       {/* Breadcrumb */}
       <div className="bg-white border-b">
         <div className="container mx-auto py-3 px-4">
@@ -229,7 +229,7 @@ const PropertyDetail = () => {
           </div>
         </div>
       </div>
-      
+
       <div className="container mx-auto py-8 px-4">
         {/* Back button */}
         <div className="mb-6">
@@ -240,7 +240,7 @@ const PropertyDetail = () => {
             </Button>
           </Link>
         </div>
-        
+
         {/* Property Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
           <div>
@@ -261,26 +261,26 @@ const PropertyDetail = () => {
             </div>
           </div>
         </div>
-        
+
         {/* Property Images */}
         <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-8">
           <div className="relative h-[300px] md:h-[500px]">
-            <img 
-              src={property.images[activeImage]} 
+            <img
+              src={property.images[activeImage]}
               alt={property.title}
               className="w-full h-full object-cover"
             />
-            
+
             {/* For Sale/Rent Badge */}
-            <Badge 
+            <Badge
               className={`absolute top-4 left-4 ${property.forSale ? 'bg-nest-secondary' : 'bg-nest-accent'}`}
             >
               {property.forSale ? 'For Sale' : 'For Rent'}
             </Badge>
-            
+
             {/* Action Buttons */}
             <div className="absolute top-4 right-4 flex space-x-2">
-              <Button 
+              <Button
                 variant="secondary"
                 size="icon"
                 className={`${isSaved ? 'bg-nest-accent text-white' : 'bg-white/80 hover:bg-white text-nest-accent hover:text-nest-accent'} rounded-full h-10 w-10`}
@@ -289,7 +289,7 @@ const PropertyDetail = () => {
               >
                 <Heart className="h-5 w-5" fill={isSaved ? "currentColor" : "none"} />
               </Button>
-              <Button 
+              <Button
                 variant="secondary"
                 size="icon"
                 className="bg-white/80 hover:bg-white text-nest-dark hover:text-nest-dark rounded-full h-10 w-10"
@@ -299,19 +299,18 @@ const PropertyDetail = () => {
               </Button>
             </div>
           </div>
-          
+
           {/* Thumbnail Images */}
           <div className="grid grid-cols-3 gap-2 p-2">
             {property.images.map((image, index) => (
-              <button 
+              <button
                 key={index}
                 onClick={() => setActiveImage(index)}
-                className={`h-24 relative rounded overflow-hidden ${
-                  index === activeImage ? 'ring-2 ring-nest-primary' : ''
-                }`}
+                className={`h-24 relative rounded overflow-hidden ${index === activeImage ? 'ring-2 ring-nest-primary' : ''
+                  }`}
               >
-                <img 
-                  src={image} 
+                <img
+                  src={image}
                   alt={`${property.title} ${index + 1}`}
                   className="w-full h-full object-cover"
                 />
@@ -319,7 +318,7 @@ const PropertyDetail = () => {
             ))}
           </div>
         </div>
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
@@ -349,7 +348,7 @@ const PropertyDetail = () => {
                 </div>
               </div>
             </div>
-            
+
             {/* Description */}
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h2 className="text-xl font-bold mb-4 text-nest-dark">Description</h2>
@@ -357,7 +356,7 @@ const PropertyDetail = () => {
                 {property.description}
               </p>
             </div>
-            
+
             {/* Features */}
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h2 className="text-xl font-bold mb-4 text-nest-dark">Features</h2>
@@ -371,7 +370,7 @@ const PropertyDetail = () => {
               </div>
             </div>
           </div>
-          
+
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Contact Agent */}
@@ -444,8 +443,8 @@ const PropertyDetail = () => {
                     defaultValue={`I'm interested in this property: ${property.title}`}
                   />
                 </div>
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   className="w-full bg-nest-primary hover:bg-nest-primary/90"
                   disabled={isLoading}
                 >
@@ -453,7 +452,7 @@ const PropertyDetail = () => {
                 </Button>
               </form>
             </div>
-            
+
             {/* Similar Properties */}
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h2 className="text-xl font-bold mb-4 text-nest-dark">Similar Properties</h2>
@@ -465,8 +464,8 @@ const PropertyDetail = () => {
                     <Link key={similarProperty.id} to={`/properties/${similarProperty.id}`} className="block">
                       <div className="flex border rounded overflow-hidden hover:shadow-md transition-shadow">
                         <div className="h-24 w-24 flex-shrink-0">
-                          <img 
-                            src={similarProperty.imageUrl} 
+                          <img
+                            src={similarProperty.imageUrl}
                             alt={similarProperty.title}
                             className="h-full w-full object-cover"
                           />
@@ -491,11 +490,11 @@ const PropertyDetail = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Footer */}
       <footer className="bg-nest-dark py-8 px-4 text-white mt-12">
         <div className="container mx-auto text-center">
-          <p>&copy; {new Date().getFullYear()} NestQuestHub. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Vastiqa. All rights reserved.</p>
         </div>
       </footer>
     </div>

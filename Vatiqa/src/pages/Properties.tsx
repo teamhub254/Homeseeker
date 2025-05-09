@@ -7,10 +7,10 @@ import { properties } from '../data/properties';
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
-import { 
-  Accordion, 
-  AccordionContent, 
-  AccordionItem, 
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
   AccordionTrigger
 } from "@/components/ui/accordion";
 import {
@@ -33,22 +33,22 @@ const Properties = () => {
     bathrooms: "",
     listingType: "all",
   });
-  
+
   const applyFilters = () => {
     let results = properties;
-    
+
     // Filter by property type
     if (filters.propertyType.length > 0) {
-      results = results.filter(property => 
+      results = results.filter(property =>
         filters.propertyType.includes(property.type.toLowerCase())
       );
     }
-    
+
     // Filter by price range
     results = results.filter(
       property => property.price >= filters.priceRange[0] && property.price <= filters.priceRange[1]
     );
-    
+
     // Filter by bedrooms
     if (filters.bedrooms) {
       if (filters.bedrooms === "4+") {
@@ -59,7 +59,7 @@ const Properties = () => {
         );
       }
     }
-    
+
     // Filter by bathrooms
     if (filters.bathrooms) {
       if (filters.bathrooms === "3+") {
@@ -70,34 +70,34 @@ const Properties = () => {
         );
       }
     }
-    
+
     // Filter by listing type (sale or rent)
     if (filters.listingType !== "all") {
       const isForSale = filters.listingType === "sale";
       results = results.filter(property => property.forSale === isForSale);
     }
-    
+
     setFilteredProperties(results);
   };
-  
+
   useEffect(() => {
     applyFilters();
   }, [filters]);
-  
+
   const handlePropertyTypeChange = (type: string) => {
     setFilters(prev => {
       const updatedTypes = prev.propertyType.includes(type)
         ? prev.propertyType.filter(t => t !== type)
         : [...prev.propertyType, type];
-      
+
       return { ...prev, propertyType: updatedTypes };
     });
   };
-  
+
   const handlePriceChange = (values: number[]) => {
     setFilters(prev => ({ ...prev, priceRange: values }));
   };
-  
+
   const resetFilters = () => {
     setFilters({
       propertyType: [],
@@ -107,15 +107,15 @@ const Properties = () => {
       listingType: "all",
     });
   };
-  
+
   const formatPrice = (price: number) => {
     return `$${price.toLocaleString()}`;
   };
-  
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      
+
       <div className="bg-nest-primary py-8 md:py-12">
         <div className="container mx-auto px-4">
           <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">
@@ -127,29 +127,29 @@ const Properties = () => {
           </div>
         </div>
       </div>
-      
+
       <div className="container mx-auto px-4 py-8">
         {/* Search and Filters */}
         <div className="mb-8">
           <SearchBar />
         </div>
-        
+
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Filters Sidebar (Desktop) */}
           <div className="hidden lg:block w-64 flex-shrink-0">
             <div className="bg-white rounded-lg shadow-sm p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-bold text-lg">Filters</h3>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={resetFilters}
                   className="text-xs text-nest-primary hover:text-nest-primary/80 h-auto p-0"
                 >
                   Reset All
                 </Button>
               </div>
-              
+
               <div className="space-y-6">
                 {/* Listing Type Filter */}
                 <div>
@@ -181,7 +181,7 @@ const Properties = () => {
                     </Button>
                   </div>
                 </div>
-                
+
                 {/* Price Range */}
                 <div>
                   <h4 className="font-medium mb-3">Price Range</h4>
@@ -201,19 +201,19 @@ const Properties = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Property Type Filter */}
                 <div>
                   <h4 className="font-medium mb-3">Property Type</h4>
                   <div className="space-y-2">
                     {["apartment", "house", "condo", "townhouse", "studio"].map((type) => (
                       <div key={type} className="flex items-center">
-                        <Checkbox 
+                        <Checkbox
                           id={`type-${type}`}
                           checked={filters.propertyType.includes(type)}
                           onCheckedChange={() => handlePropertyTypeChange(type)}
                         />
-                        <label 
+                        <label
                           htmlFor={`type-${type}`}
                           className="ml-2 text-sm cursor-pointer capitalize"
                         >
@@ -223,7 +223,7 @@ const Properties = () => {
                     ))}
                   </div>
                 </div>
-                
+
                 {/* Bedrooms Filter */}
                 <div>
                   <h4 className="font-medium mb-3">Bedrooms</h4>
@@ -245,7 +245,7 @@ const Properties = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 {/* Bathrooms Filter */}
                 <div>
                   <h4 className="font-medium mb-3">Bathrooms</h4>
@@ -269,7 +269,7 @@ const Properties = () => {
               </div>
             </div>
           </div>
-          
+
           {/* Filter Toggle (Mobile) */}
           <div className="lg:hidden mb-4">
             <Button
@@ -280,7 +280,7 @@ const Properties = () => {
               <Filter className="h-4 w-4" />
               <span>Filter Properties</span>
             </Button>
-            
+
             {/* Mobile Filter Drawer */}
             {isFilterOpen && (
               <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-end">
@@ -291,7 +291,7 @@ const Properties = () => {
                       <X className="h-5 w-5" />
                     </button>
                   </div>
-                  
+
                   <div className="space-y-6">
                     {/* Listing Type Filter */}
                     <div>
@@ -323,7 +323,7 @@ const Properties = () => {
                         </Button>
                       </div>
                     </div>
-                    
+
                     {/* Mobile Accordions for Filters */}
                     <Accordion type="single" collapsible>
                       <AccordionItem value="price">
@@ -346,19 +346,19 @@ const Properties = () => {
                           </div>
                         </AccordionContent>
                       </AccordionItem>
-                      
+
                       <AccordionItem value="property-type">
                         <AccordionTrigger>Property Type</AccordionTrigger>
                         <AccordionContent>
                           <div className="space-y-2">
                             {["apartment", "house", "condo", "townhouse", "studio"].map((type) => (
                               <div key={type} className="flex items-center">
-                                <Checkbox 
+                                <Checkbox
                                   id={`mobile-type-${type}`}
                                   checked={filters.propertyType.includes(type)}
                                   onCheckedChange={() => handlePropertyTypeChange(type)}
                                 />
-                                <label 
+                                <label
                                   htmlFor={`mobile-type-${type}`}
                                   className="ml-2 text-sm cursor-pointer capitalize"
                                 >
@@ -369,7 +369,7 @@ const Properties = () => {
                           </div>
                         </AccordionContent>
                       </AccordionItem>
-                      
+
                       <AccordionItem value="bedrooms">
                         <AccordionTrigger>Bedrooms</AccordionTrigger>
                         <AccordionContent>
@@ -392,7 +392,7 @@ const Properties = () => {
                           </Select>
                         </AccordionContent>
                       </AccordionItem>
-                      
+
                       <AccordionItem value="bathrooms">
                         <AccordionTrigger>Bathrooms</AccordionTrigger>
                         <AccordionContent>
@@ -415,16 +415,16 @@ const Properties = () => {
                         </AccordionContent>
                       </AccordionItem>
                     </Accordion>
-                    
+
                     <div className="pt-4 space-y-4">
-                      <Button 
+                      <Button
                         className="w-full bg-nest-primary hover:bg-nest-primary/90"
                         onClick={() => setIsFilterOpen(false)}
                       >
                         Apply Filters
                       </Button>
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         className="w-full"
                         onClick={() => {
                           resetFilters();
@@ -439,7 +439,7 @@ const Properties = () => {
               </div>
             )}
           </div>
-          
+
           {/* Properties Listing */}
           <div className="flex-1">
             {/* Results Count & Sort */}
@@ -447,7 +447,7 @@ const Properties = () => {
               <p className="text-muted-foreground mb-3 sm:mb-0">
                 Showing <span className="font-medium text-nest-dark">{filteredProperties.length}</span> properties
               </p>
-              
+
               <div className="w-full sm:w-auto">
                 <Select defaultValue="newest">
                   <SelectTrigger className="w-full sm:w-[180px]">
@@ -463,7 +463,7 @@ const Properties = () => {
                 </Select>
               </div>
             </div>
-            
+
             {/* Properties Grid */}
             {filteredProperties.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -494,7 +494,7 @@ const Properties = () => {
                 </Button>
               </div>
             )}
-            
+
             {/* Pagination */}
             {filteredProperties.length > 0 && (
               <div className="flex justify-center mt-8">
@@ -524,11 +524,11 @@ const Properties = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Footer */}
       <footer className="bg-nest-dark py-8 px-4 text-white mt-12">
         <div className="container mx-auto text-center">
-          <p>&copy; {new Date().getFullYear()} NestQuestHub. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Vastiqa. All rights reserved.</p>
         </div>
       </footer>
     </div>

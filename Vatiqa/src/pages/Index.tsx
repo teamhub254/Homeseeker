@@ -9,14 +9,14 @@ const Index = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      
+
       <Hero />
-      
+
       {/* Space to account for the search bar */}
       <div className="pt-24" />
-      
+
       <FeaturedProperties />
-      
+
       {/* How It Works Section */}
       <section className="py-16 bg-gray-50 px-4">
         <div className="container mx-auto">
@@ -26,7 +26,7 @@ const Index = () => {
               Find your perfect space in just a few simple steps
             </p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
             <div className="flex flex-col items-center text-center">
               <div className="bg-[#f0e6ff] rounded-full p-4 mb-4">
@@ -37,7 +37,7 @@ const Index = () => {
                 Browse our extensive list of properties and use filters to narrow down your search
               </p>
             </div>
-            
+
             <div className="flex flex-col items-center text-center">
               <div className="bg-[#f0e6ff] rounded-full p-4 mb-4">
                 <Home className="h-8 w-8 text-[#8b00ff]" />
@@ -47,7 +47,7 @@ const Index = () => {
                 Schedule viewings of properties that catch your eye to see them in person
               </p>
             </div>
-            
+
             <div className="flex flex-col items-center text-center">
               <div className="bg-[#f0e6ff] rounded-full p-4 mb-4">
                 <DollarSign className="h-8 w-8 text-[#8b00ff]" />
@@ -60,7 +60,7 @@ const Index = () => {
           </div>
         </div>
       </section>
-      
+
       {/* CTA Section */}
       <section className="py-16 px-4 bg-[#8b00ff] text-white">
         <div className="container mx-auto text-center">
@@ -69,14 +69,14 @@ const Index = () => {
             Start your search today and discover the perfect property that meets all your needs
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Button 
+            <Button
               className="bg-white text-[#8b00ff] hover:bg-white/90"
               size="lg"
             >
               Browse Properties
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="border-white text-white hover:bg-white hover:text-[#8b00ff]"
               size="lg"
             >
@@ -85,16 +85,16 @@ const Index = () => {
           </div>
         </div>
       </section>
-      
+
       {/* Footer */}
       <footer className="bg-[#2c2c2c] py-12 px-4 text-white">
         <div className="container mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <img 
-                  src="/lovable-uploads/6df1c057-cde1-4b21-871b-e48b489b67c3.png" 
-                  alt="Vastiqa Logo" 
+                <img
+                  src="/lovable-uploads/6df1c057-cde1-4b21-871b-e48b489b67c3.png"
+                  alt="Vastiqa Logo"
                   className="h-8 w-auto"
                 />
                 <span className="text-xl font-bold">Vastiqa<span className="text-[#b980ff] block text-sm">Find Your Perfect Space</span></span>
@@ -117,7 +117,7 @@ const Index = () => {
                 </a>
               </div>
             </div>
-            
+
             <div>
               <h3 className="text-lg font-bold mb-4">Quick Links</h3>
               <ul className="space-y-2">
@@ -128,7 +128,7 @@ const Index = () => {
                 <li><a href="#" className="text-gray-400 hover:text-white">Contact Us</a></li>
               </ul>
             </div>
-            
+
             <div>
               <h3 className="text-lg font-bold mb-4">Property Types</h3>
               <ul className="space-y-2">
@@ -139,7 +139,7 @@ const Index = () => {
                 <li><a href="#" className="text-gray-400 hover:text-white">Land</a></li>
               </ul>
             </div>
-            
+
             <div>
               <h3 className="text-lg font-bold mb-4">Contact Us</h3>
               <ul className="space-y-2">
@@ -153,22 +153,22 @@ const Index = () => {
                   <svg className="h-5 w-5 text-[#b980ff] mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
-                  <a href="mailto:info@vastiqa.com" className="text-gray-400 hover:text-white">
-                    info@vastiqa.com
+                  <a href="mailto:teamhub254@gmail.com" className="text-gray-400 hover:text-white">
+                    teamhub254@gmail.com
                   </a>
                 </li>
                 <li className="flex items-center">
                   <svg className="h-5 w-5 text-[#b980ff] mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                   </svg>
-                  <a href="tel:+15551234567" className="text-gray-400 hover:text-white">
-                    (555) 123-4567
+                  <a href="tel:+254741677399" className="text-gray-400 hover:text-white">
+                    +254 741 677 399
                   </a>
                 </li>
               </ul>
             </div>
           </div>
-          
+
           <div className="border-t border-gray-700 mt-12 pt-8 text-center text-gray-400">
             <p>&copy; {new Date().getFullYear()} Vastiqa. All rights reserved.</p>
           </div>
