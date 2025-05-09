@@ -39,43 +39,43 @@ const Contact = () => {
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-5xl mx-auto">
           <h1 className="text-3xl font-bold text-center mb-8 text-[#8b00ff]">Contact Us</h1>
-          
+
           <div className="grid md:grid-cols-3 gap-8">
             {/* Contact Information */}
             <div>
               <Card className="h-full">
                 <CardContent className="pt-6">
                   <h2 className="text-xl font-semibold mb-4">Get In Touch</h2>
-                  
+
                   <div className="space-y-4">
                     <div className="flex items-start">
                       <Mail className="h-5 w-5 text-[#8b00ff] mr-3 mt-0.5" />
                       <div>
                         <h3 className="font-medium">Email</h3>
-                        <p className="text-gray-600">info@vastiqa.com</p>
+                        <p className="text-gray-600">teamhub254@gmail.com</p>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-start">
                       <Phone className="h-5 w-5 text-[#8b00ff] mr-3 mt-0.5" />
                       <div>
                         <h3 className="font-medium">Phone</h3>
-                        <p className="text-gray-600">+1 (555) 123-4567</p>
+                        <p className="text-gray-600">+254 741 677 399</p>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-start">
                       <MapPin className="h-5 w-5 text-[#8b00ff] mr-3 mt-0.5" />
                       <div>
                         <h3 className="font-medium">Office</h3>
                         <p className="text-gray-600">
                           123 Property Lane<br />
-                          San Francisco, CA 94105<br />
-                          United States
+                          Nairobi City<br />
+                          Kenya
                         </p>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-start">
                       <Clock className="h-5 w-5 text-[#8b00ff] mr-3 mt-0.5" />
                       <div>
@@ -91,13 +91,13 @@ const Contact = () => {
                 </CardContent>
               </Card>
             </div>
-            
+
             {/* Contact Form */}
             <div className="md:col-span-2">
               <Card>
                 <CardContent className="pt-6">
                   <h2 className="text-xl font-semibold mb-4">Send Us a Message</h2>
-                  
+
                   <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
@@ -112,7 +112,7 @@ const Contact = () => {
                           required
                         />
                       </div>
-                      
+
                       <div>
                         <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                           Your Email
@@ -127,7 +127,7 @@ const Contact = () => {
                         />
                       </div>
                     </div>
-                    
+
                     <div>
                       <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-1">
                         Subject
@@ -140,7 +140,7 @@ const Contact = () => {
                         required
                       />
                     </div>
-                    
+
                     <div>
                       <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
                         Message
@@ -154,10 +154,10 @@ const Contact = () => {
                         required
                       />
                     </div>
-                    
+
                     <div className="flex justify-end">
-                      <Button 
-                        type="submit" 
+                      <Button
+                        type="submit"
                         disabled={isSubmitting}
                         className="bg-[#8b00ff] hover:bg-[#8b00ff]/90 flex items-center gap-2"
                       >
@@ -170,7 +170,7 @@ const Contact = () => {
               </Card>
             </div>
           </div>
-          
+
           {/* Google Map (Placeholder) */}
           <div className="mt-8">
             <Card>
@@ -184,7 +184,7 @@ const Contact = () => {
               </CardContent>
             </Card>
           </div>
-          
+
           {/* FAQ or Additional Information */}
           <div className="mt-12">
             <h2 className="text-2xl font-semibold text-center mb-6">Frequently Asked Questions</h2>
