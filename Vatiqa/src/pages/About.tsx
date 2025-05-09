@@ -9,21 +9,21 @@ const About = () => {
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-3xl font-bold text-center mb-8 text-[#8b00ff]">About Vastiqa</h1>
-          
+
           <div className="grid gap-8">
             {/* About Us Section */}
             <Card>
               <CardContent className="pt-6">
                 <h2 className="text-2xl font-semibold mb-4">Our Story</h2>
                 <p className="text-gray-700 mb-4">
-                  Founded in 2023, Vastiqa was born from a passion for connecting people with their perfect homes. We understand that finding the right property is about more than just walls and windows—it's about finding a space where memories are made and lives unfold.
+                  Founded in 2025, Vastiqa was born from a passion for connecting people with their perfect homes. We understand that finding the right property is about more than just walls and windows—it's about finding a space where memories are made and lives unfold.
                 </p>
                 <p className="text-gray-700 mb-4">
-                  Our founders, with over 20 years of combined experience in real estate, noticed that the property market lacked a truly user-focused platform. We built Vastiqa to bridge that gap, creating a seamless experience for both buyers and sellers in the property market.
+                  At Vastiqa, we believe finding your dream home should be simple, transparent, and stress-free . We built Vastiqa to bridge that gap, creating a seamless experience for both buyers and sellers in the property market.
                 </p>
               </CardContent>
             </Card>
-            
+
             {/* Our Mission */}
             <Card>
               <CardContent className="pt-6">
@@ -38,7 +38,7 @@ const About = () => {
                 </div>
               </CardContent>
             </Card>
-            
+
             {/* Our Team */}
             <Card>
               <CardContent className="pt-6">
@@ -78,7 +78,7 @@ const About = () => {
                 </div>
               </CardContent>
             </Card>
-            
+
             {/* Our Values */}
             <Card>
               <CardContent className="pt-6">
@@ -118,7 +118,7 @@ const About = () => {
               </CardContent>
             </Card>
           </div>
-          
+
           <div className="text-center mt-12">
             <p className="text-gray-700">
               Ready to find your perfect space? <a href="/properties" className="text-[#8b00ff] font-semibold">Browse our properties</a> or <a href="/contact" className="text-[#8b00ff] font-semibold">contact us</a> with any questions.
