@@ -92,7 +92,7 @@ const Auth = () => {
         // Since we can't directly modify the role column yet, we'll use this as a flag
         // Until the database schema update happens
         const { error: updateError } = await supabase
-          .from('profiles')
+          .from('users')
           .update({ 
             first_name: firstName,
             last_name: lastName
