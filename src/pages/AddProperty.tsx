@@ -1,4 +1,3 @@
-
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Home, Upload } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import * as z from "zod";
@@ -39,9 +38,40 @@ const propertySchema = z.object({
 const AddProperty = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [role, setRole] = useState<string | null>(null);
   const [images, setImages] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
+  // Fetch user role
+  useEffect(() => {
+    if (user) {
+      fetchUserRole();
+    }
+  }, [user]);
+
+  const fetchUserRole = async () => {
+    if (!user) return;
+    const { data, error } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+    if (!error && data) setRole(data.role);
+  };
+
+  // If not a lister, show error or redirect
+  if (role && role !== 'lister') {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="bg-white p-8 rounded shadow text-center">
+          <h2 className="text-xl font-bold mb-2">Access Denied</h2>
+          <p className="mb-4">You must be a property lister to add a property.</p>
+          <Button onClick={() => navigate('/')}>Go Home</Button>
+        </div>
+      </div>
+    );
+  }
+
   const form = useForm<z.infer<typeof propertySchema>>({
     resolver: zodResolver(propertySchema),
     defaultValues: {
@@ -59,18 +89,18 @@ const AddProperty = () => {
       zipCode: "",
     },
   });
-  
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const newFiles = Array.from(e.target.files);
       setImages((prev) => [...prev, ...newFiles].slice(0, 6)); // Limit to 6 images
     }
   };
-  
+
   const removeImage = (index: number) => {
     setImages((prev) => prev.filter((_, i) => i !== index));
   };
-  
+
   const onSubmit = async (data: z.infer<typeof propertySchema>) => {
     if (!user) {
       toast({
@@ -117,7 +147,7 @@ const AddProperty = () => {
 
         for (const [index, image] of images.entries()) {
           const filePath = `properties/${propertyId}/${index}-${Date.now()}`;
-          
+
           const { data: uploadData, error: uploadError } = await supabase.storage
             .from('property_images')
             .upload(filePath, image);
@@ -143,7 +173,7 @@ const AddProperty = () => {
             .from('properties')
             .update({ images: imageUrls })
             .eq('id', propertyId);
-            
+
           if (updateError) {
             console.error("Error updating property with images:", updateError);
           }
@@ -154,7 +184,7 @@ const AddProperty = () => {
         title: "Property submitted!",
         description: "Your property has been added successfully.",
       });
-      
+
       navigate("/properties");
     } catch (error: any) {
       console.error("Error adding property:", error);
@@ -167,7 +197,7 @@ const AddProperty = () => {
       setIsSubmitting(false);
     }
   };
-  
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -199,7 +229,7 @@ const AddProperty = () => {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="price"
@@ -213,7 +243,7 @@ const AddProperty = () => {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="propertyType"
@@ -239,7 +269,7 @@ const AddProperty = () => {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="status"
@@ -263,7 +293,7 @@ const AddProperty = () => {
                     />
                   </div>
                 </div>
-                
+
                 {/* Property Details */}
                 <div>
                   <h3 className="text-lg font-medium mb-4">Property Details</h3>
@@ -293,7 +323,7 @@ const AddProperty = () => {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="bathrooms"
@@ -319,7 +349,7 @@ const AddProperty = () => {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="area"
@@ -335,7 +365,7 @@ const AddProperty = () => {
                     />
                   </div>
                 </div>
-                
+
                 {/* Description */}
                 <FormField
                   control={form.control}
@@ -344,10 +374,10 @@ const AddProperty = () => {
                     <FormItem>
                       <FormLabel>Description</FormLabel>
                       <FormControl>
-                        <Textarea 
-                          placeholder="Describe your property in detail..." 
+                        <Textarea
+                          placeholder="Describe your property in detail..."
                           className="min-h-[150px]"
-                          {...field} 
+                          {...field}
                         />
                       </FormControl>
                       <FormDescription>
@@ -357,7 +387,7 @@ const AddProperty = () => {
                     </FormItem>
                   )}
                 />
-                
+
                 {/* Location */}
                 <div>
                   <h3 className="text-lg font-medium mb-4">Location</h3>
@@ -375,7 +405,7 @@ const AddProperty = () => {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="city"
@@ -389,7 +419,7 @@ const AddProperty = () => {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="state"
@@ -403,7 +433,7 @@ const AddProperty = () => {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="zipCode"
@@ -419,7 +449,7 @@ const AddProperty = () => {
                     />
                   </div>
                 </div>
-                
+
                 {/* Images */}
                 <div>
                   <h3 className="text-lg font-medium mb-4">Property Images</h3>
@@ -443,7 +473,7 @@ const AddProperty = () => {
                         />
                       </label>
                     </div>
-                    
+
                     {images.length > 0 && (
                       <div className="mt-6">
                         <p className="text-sm font-medium mb-2">
@@ -461,6 +491,8 @@ const AddProperty = () => {
                                 type="button"
                                 onClick={() => removeImage(index)}
                                 className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition"
+                                aria-label="Remove image"
+                                title="Remove image"
                               >
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -471,13 +503,13 @@ const AddProperty = () => {
                         </div>
                       </div>
                     )}
-                    
+
                     <p className="text-xs text-gray-500 mt-4">
                       Upload up to 6 high-quality images. Recommended size: 1200x800px.
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="flex justify-end">
                   <Button
                     type="submit"
