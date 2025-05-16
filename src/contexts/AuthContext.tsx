@@ -24,20 +24,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const syncUserRole = async (user: User) => {
+      try {
+        const { data, error } = await supabase
+          .from('users')
+          .select('id')
+          .eq('id', user.id)
+          .single();
+
+        if (error && error.code === 'PGRST116') {
+          // User not found in users table, insert with default role
+          await supabase.from('users').insert([
+            {
+              id: user.id,
+              full_name: user.user_metadata?.full_name || 'New User',
+              role: 'seeker', // default role
+            },
+          ]);
+        }
+      } catch (err) {
+        console.error('Error syncing user role:', err);
+      }
+    };
+
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        if (session?.user) {
+          syncUserRole(session.user);
+        }
       }
     );
 
-    // Check for existing session
+    // Check for existing session on mount
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      if (session?.user) {
+        syncUserRole(session.user);
+      }
     });
 
     return () => subscription.unsubscribe();

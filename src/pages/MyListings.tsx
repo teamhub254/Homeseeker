@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
@@ -31,27 +30,52 @@ interface Property {
 const MyListings = () => {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
+  const [role, setRole] = useState<string | null>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (user) {
+      fetchUserRole();
       fetchProperties();
     }
   }, [user]);
 
+  const fetchUserRole = async () => {
+    if (!user) return;
+    const { data, error } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+    if (!error && data) setRole(data.role);
+  };
+
+  // If not a lister, show error or redirect
+  if (role && role !== 'lister') {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="bg-white p-8 rounded shadow text-center">
+          <h2 className="text-xl font-bold mb-2">Access Denied</h2>
+          <p className="mb-4">You must be a property lister to view this page.</p>
+          <Button onClick={() => navigate('/')}>Go Home</Button>
+        </div>
+      </div>
+    );
+  }
+
   const fetchProperties = async () => {
     try {
       setLoading(true);
-      
+
       const { data, error } = await supabase
         .from("properties")
         .select("*")
         .eq("user_id", user?.id)
         .order("created_at", { ascending: false });
-        
+
       if (error) throw error;
-      
+
       setProperties(data || []);
     } catch (error) {
       console.error("Error fetching properties:", error);
@@ -69,17 +93,17 @@ const MyListings = () => {
     if (!confirm("Are you sure you want to delete this property?")) {
       return;
     }
-    
+
     try {
       const { error } = await supabase
         .from("properties")
         .delete()
         .eq("id", id);
-        
+
       if (error) throw error;
-      
+
       setProperties(properties.filter((property) => property.id !== id));
-      
+
       toast({
         title: "Success",
         description: "Property deleted successfully",
@@ -111,11 +135,11 @@ const MyListings = () => {
     <AuthGuard>
       <div className="min-h-screen bg-gray-50">
         <Navbar />
-        
+
         <div className="container mx-auto py-8 px-4">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold text-gray-900">My Properties</h1>
-            <Button 
+            <Button
               onClick={() => navigate("/add-property")}
               className="flex items-center gap-2 bg-[#8b00ff] hover:bg-[#7a00e0]"
             >
@@ -123,7 +147,7 @@ const MyListings = () => {
               Add Property
             </Button>
           </div>
-          
+
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#8b00ff]"></div>
@@ -136,7 +160,7 @@ const MyListings = () => {
                 <p className="text-gray-500 mb-4">
                   You haven't added any properties yet. Create your first property listing now.
                 </p>
-                <Button 
+                <Button
                   onClick={() => navigate("/add-property")}
                   className="bg-[#8b00ff] hover:bg-[#7a00e0]"
                 >

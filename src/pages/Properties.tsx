@@ -351,7 +351,7 @@ const Properties = () => {
                         <AccordionTrigger>Property Type</AccordionTrigger>
                         <AccordionContent>
                           <div className="space-y-2">
-                            {["apartment", "house", "condo", "townhouse", "studio"].map((type) => (
+                            {["apartment", "Bungalow", "Mansion", "townhouse", "Bedsitter/studio"].map((type) => (
                               <div key={type} className="flex items-center">
                                 <Checkbox
                                   id={`mobile-type-${type}`}
