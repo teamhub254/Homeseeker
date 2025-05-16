@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import SearchBar from './SearchBar';
 import { Home } from "lucide-react";
@@ -8,7 +7,7 @@ const Hero = () => {
     <section
       className="relative bg-gradient-to-r from-nest-primary to-nest-secondary py-24 px-4 text-white overflow-hidden"
       style={{
-        backgroundImage: `linear-gradient(to right, rgba(74, 144, 226, 0.85), rgba(42, 183, 202, 0.85)), url(https://unsplash.com/photos/black-wooden-table-on-rug-mGZX2MOPR-s)-`,
+        backgroundImage: `linear-gradient(to right, rgba(74, 144, 226, 0.4), rgba(42, 183, 202, 0.4)), url(/assets/hero-bg.jpg)`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
       }}
