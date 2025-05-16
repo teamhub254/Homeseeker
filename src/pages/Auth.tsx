@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
@@ -22,7 +21,7 @@ const Auth = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-  
+
   // If user is already logged in, redirect to home
   if (user) {
     navigate('/');
@@ -31,24 +30,24 @@ const Auth = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       setLoading(true);
-      
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
-      
+
       if (error) throw error;
-      
+
       const redirectTo = new URLSearchParams(location.search).get('redirectTo') || '/';
-      
+
       toast({
         title: "Login successful",
         description: "Welcome back!",
       });
-      
+
       navigate(redirectTo);
     } catch (error: any) {
       console.error("Login error:", error);
@@ -61,18 +60,17 @@ const Auth = () => {
       setLoading(false);
     }
   };
-  
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       setLoading(true);
-      
-      // Split name into first and last name for profile
+
       const nameParts = name.trim().split(' ');
       const firstName = nameParts[0] || '';
       const lastName = nameParts.slice(1).join(' ') || '';
-      
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -80,55 +78,51 @@ const Auth = () => {
           data: {
             first_name: firstName,
             last_name: lastName,
-            is_lister: isLister,
           }
         }
       });
-      
+
       if (error) throw error;
-      
-      if (isLister) {
-        // Update user metadata to indicate they're a lister
-        // Since we can't directly modify the role column yet, we'll use this as a flag
-        // Until the database schema update happens
-        const { error: updateError } = await supabase
-          .from('users')
-          .update({ 
-            first_name: firstName,
-            last_name: lastName
-            // We'll add role: 'lister' once the column exists
-          })
-          .eq('user_id', data.user?.id);
-          
-        if (updateError) {
-          console.error("Error updating user profile:", updateError);
-        }
+
+      // Set role in users table
+      const role = isLister ? 'lister' : 'renter';
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({
+          full_name: name,
+          role: role,
+          is_lister: isLister,
+        })
+        .eq('id', data.user?.id);
+
+      if (updateError) {
+        console.error('Error updating user role:', updateError);
       }
-      
+
       toast({
-        title: "Sign up successful",
-        description: isLister 
-          ? "Your property lister account has been created successfully!" 
-          : "Your account has been created successfully!",
+        title: 'Sign up successful',
+        description: isLister
+          ? 'Your property lister account has been created successfully!'
+          : 'Your account has been created successfully!',
       });
-      
+
       navigate('/');
     } catch (error: any) {
-      console.error("Signup error:", error);
+      console.error('Signup error:', error);
       toast({
-        title: "Sign up failed",
-        description: error.message || "There was a problem creating your account. Please try again.",
-        variant: "destructive",
+        title: 'Sign up failed',
+        description: error.message || 'There was a problem creating your account. Please try again.',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
     }
   };
-  
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      
+
       <div className="container mx-auto py-12 px-4">
         <div className="max-w-md mx-auto">
           <div className="mb-8 text-center">
@@ -142,14 +136,14 @@ const Auth = () => {
               Sign in to your account or create a new one
             </p>
           </div>
-          
+
           <div className="bg-white rounded-lg shadow p-6">
             <Tabs defaultValue="login" className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-6">
                 <TabsTrigger value="login">Login</TabsTrigger>
                 <TabsTrigger value="signup">Sign Up</TabsTrigger>
               </TabsList>
-              
+
               <TabsContent value="login">
                 <form onSubmit={handleLogin} className="space-y-4">
                   <div className="space-y-2">
@@ -169,7 +163,7 @@ const Auth = () => {
                       />
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <label htmlFor="password" className="text-sm font-medium">
@@ -199,15 +193,15 @@ const Auth = () => {
                       </button>
                     </div>
                   </div>
-                  
-                  <Button 
-                    type="submit" 
+
+                  <Button
+                    type="submit"
                     className="w-full bg-[#8b00ff] hover:bg-[#7a00e0] text-white"
                     disabled={loading}
                   >
                     {loading ? "Signing In..." : "Sign In"}
                   </Button>
-                  
+
                   <div className="relative my-6">
                     <div className="absolute inset-0 flex items-center">
                       <div className="w-full border-t border-gray-200"></div>
@@ -216,10 +210,10 @@ const Auth = () => {
                       <span className="bg-white px-2 text-muted-foreground">Or continue with</span>
                     </div>
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-4">
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       className="w-full"
                       disabled={loading}
                       onClick={() => toast({
@@ -247,8 +241,8 @@ const Auth = () => {
                       </svg>
                       Google
                     </Button>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       className="w-full"
                       disabled={loading}
                       onClick={() => toast({
@@ -264,7 +258,7 @@ const Auth = () => {
                   </div>
                 </form>
               </TabsContent>
-              
+
               <TabsContent value="signup">
                 <form onSubmit={handleSignup} className="space-y-4">
                   <div className="space-y-2">
@@ -284,7 +278,7 @@ const Auth = () => {
                       />
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <label htmlFor="signup-email" className="text-sm font-medium">
                       Email Address
@@ -302,7 +296,7 @@ const Auth = () => {
                       />
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <label htmlFor="signup-password" className="text-sm font-medium">
                       Password
@@ -327,10 +321,10 @@ const Auth = () => {
                       </button>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="is-lister" 
+                    <Checkbox
+                      id="is-lister"
                       checked={isLister}
                       onCheckedChange={(checked) => setIsLister(checked === true)}
                     />
@@ -347,7 +341,7 @@ const Auth = () => {
                       As a property lister, you'll be able to add, edit, and manage property listings on our platform.
                     </div>
                   )}
-                  
+
                   <div className="flex items-center space-x-2">
                     <input
                       type="checkbox"
@@ -366,15 +360,15 @@ const Auth = () => {
                       </Link>
                     </label>
                   </div>
-                  
-                  <Button 
-                    type="submit" 
+
+                  <Button
+                    type="submit"
                     className="w-full bg-[#8b00ff] hover:bg-[#7a00e0] text-white"
                     disabled={loading}
                   >
                     {loading ? "Creating Account..." : "Create Account"}
                   </Button>
-                  
+
                   <div className="relative my-6">
                     <div className="absolute inset-0 flex items-center">
                       <div className="w-full border-t border-gray-200"></div>
@@ -383,10 +377,10 @@ const Auth = () => {
                       <span className="bg-white px-2 text-muted-foreground">Or continue with</span>
                     </div>
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-4">
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       className="w-full"
                       disabled={loading}
                       onClick={() => toast({
@@ -414,8 +408,8 @@ const Auth = () => {
                       </svg>
                       Google
                     </Button>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       className="w-full"
                       disabled={loading}
                       onClick={() => toast({
@@ -435,7 +429,7 @@ const Auth = () => {
           </div>
         </div>
       </div>
-      
+
       <footer className="bg-nest-dark py-8 px-4 text-white mt-auto">
         <div className="container mx-auto text-center">
           <p>&copy; {new Date().getFullYear()} Vastiqa. All rights reserved.</p>

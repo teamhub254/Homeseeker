@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -22,25 +21,18 @@ const Navbar = () => {
 
   const fetchUserRole = async () => {
     try {
-      // Instead of directly accessing a role column that doesn't exist,
-      // Check the user_role column or set a default value
+      if (!user) return;
+      // Fetch role from users table
       const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', user?.id)
+        .from('users')
+        .select('role')
+        .eq('id', user.id)
         .single();
-
       if (error) {
-        console.error('Error fetching user profile:', error);
+        console.error('Error fetching user role:', error);
         return;
       }
-      
-      // Check if data exists and has is_lister property from auth metadata
-      // Use is_lister as a fallback until the role column is properly synced
-      if (data) {
-        // For now, consider anyone with is_lister true in metadata as a 'lister'
-        setUserRole('lister'); // Just for testing - would be data.role in production
-      }
+      setUserRole(data?.role || null);
     } catch (error) {
       console.error('Error fetching user role:', error);
     }
@@ -53,9 +45,9 @@ const Navbar = () => {
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
-          <img 
-            src="/lovable-uploads/6df1c057-cde1-4b21-871b-e48b489b67c3.png" 
-            alt="Vastiqa Logo" 
+          <img
+            src="/lovable-uploads/6df1c057-cde1-4b21-871b-e48b489b67c3.png"
+            alt="Vastiqa Logo"
             className="h-10 w-auto"
           />
           <span className="text-xl font-bold text-[#8b00ff]">Vastiqa<span className="text-black text-sm block">Find Your Perfect Space</span></span>
@@ -98,7 +90,7 @@ const Navbar = () => {
 
         {/* Mobile Menu Button */}
         <div className="md:hidden flex items-center">
-          <button 
+          <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="text-nest-dark p-2"
           >
@@ -114,37 +106,37 @@ const Navbar = () => {
       {/* Mobile Menu */}
       {isMenuOpen && (
         <div className="md:hidden bg-white border-t p-4 space-y-4">
-          <Link 
-            to="/" 
+          <Link
+            to="/"
             className="block py-2 text-nest-dark hover:text-[#8b00ff]"
             onClick={() => setIsMenuOpen(false)}
           >
             Home
           </Link>
-          <Link 
-            to="/properties" 
+          <Link
+            to="/properties"
             className="block py-2 text-nest-dark hover:text-[#8b00ff]"
             onClick={() => setIsMenuOpen(false)}
           >
             Properties
           </Link>
-          <Link 
-            to="/about" 
+          <Link
+            to="/about"
             className="block py-2 text-nest-dark hover:text-[#8b00ff]"
             onClick={() => setIsMenuOpen(false)}
           >
             About
           </Link>
-          <Link 
-            to="/contact" 
+          <Link
+            to="/contact"
             className="block py-2 text-nest-dark hover:text-[#8b00ff]"
             onClick={() => setIsMenuOpen(false)}
           >
             Contact
           </Link>
           {isLister && (
-            <Link 
-              to="/my-listings" 
+            <Link
+              to="/my-listings"
               className="block py-2 text-nest-dark hover:text-[#8b00ff] flex items-center"
               onClick={() => setIsMenuOpen(false)}
             >
@@ -154,7 +146,7 @@ const Navbar = () => {
           )}
           {isLister && (
             <div className="pt-2">
-              <Link 
+              <Link
                 to="/add-property"
                 onClick={() => setIsMenuOpen(false)}
               >
