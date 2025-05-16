@@ -3,20 +3,20 @@ import { useState } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
-import { 
-  Select, 
-  SelectContent, 
-  SelectGroup, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from "@/components/ui/select";
 
 const SearchBar = () => {
   const [location, setLocation] = useState("");
   const [propertyType, setPropertyType] = useState("");
   const [priceRange, setPriceRange] = useState("");
-  
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Search with:", { location, propertyType, priceRange });
@@ -25,7 +25,7 @@ const SearchBar = () => {
   };
 
   return (
-    <form 
+    <form
       onSubmit={handleSearch}
       className="bg-white rounded-lg shadow-md p-4 md:p-6 max-w-4xl mx-auto"
     >
@@ -39,7 +39,7 @@ const SearchBar = () => {
             onChange={(e) => setLocation(e.target.value)}
           />
         </div>
-        
+
         <div className="md:col-span-1">
           <Select value={propertyType} onValueChange={setPropertyType}>
             <SelectTrigger>
@@ -56,7 +56,8 @@ const SearchBar = () => {
             </SelectContent>
           </Select>
         </div>
-        
+
+
         <div className="md:col-span-1">
           <Select value={priceRange} onValueChange={setPriceRange}>
             <SelectTrigger>
@@ -74,10 +75,10 @@ const SearchBar = () => {
             </SelectContent>
           </Select>
         </div>
-        
+
         <div className="md:col-span-1">
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             className="w-full bg-nest-primary hover:bg-nest-primary/90"
           >
             <Search className="h-4 w-4 mr-2" />
@@ -85,7 +86,7 @@ const SearchBar = () => {
           </Button>
         </div>
       </div>
-    </form>
+    </form >
   );
 };
 
