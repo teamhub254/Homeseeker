@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import SearchBar from './SearchBar';
 import { Home } from "lucide-react";
+import { motion } from "framer-motion";
 
 const Hero = () => {
   return (
@@ -20,13 +21,24 @@ const Hero = () => {
               <Home className="h-8 w-8 text-nest-primary" />
             </div>
           </div>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
-            Find Your Dream Home
-          </h1>
-          <p className="text-lg md:text-xl opacity-90 mb-8">
-            Discover thousands of properties for sale and rent across the country.
-            Your perfect home is just a search away.
-          </p>
+          <motion.h1
+  className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4"
+  initial={{ opacity: 0, y: 30 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.8, ease: "easeOut" }}
+>
+  Find Your Dream Home
+</motion.h1>
+
+<motion.p
+  className="text-lg md:text-xl opacity-90 mb-8"
+  initial={{ opacity: 0, y: 20 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ delay: 0.4, duration: 0.8, ease: "easeOut" }}
+>
+  Discover thousands of properties for sale and rent across the country.
+  Your perfect home is just a search away.
+</motion.p>
           <div className="flex flex-wrap justify-center gap-4">
             <Button
               className="bg-white text-nest-primary hover:bg-white/90"

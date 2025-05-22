@@ -5,6 +5,7 @@ import { Menu, Search, Home, Plus, X, UserIcon, Building } from "lucide-react";
 import User from "@/components/User";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { motion } from "framer-motion";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -50,7 +51,22 @@ const Navbar = () => {
             alt="Vastiqa Logo"
             className="h-10 w-auto"
           />
-          <span className="text-xl font-bold text-[#8b00ff]">Vastiqa<span className="text-black text-sm block">Find Your Perfect Space</span></span>
+         <motion.span
+  className="text-xl font-bold text-[#8b00ff] block"
+  initial={{ opacity: 0, x: -20 }}
+  animate={{ opacity: 1, x: 0 }}
+  transition={{ duration: 0.8, ease: "easeOut" }}
+>
+  Vastiqa
+  <motion.span
+    className="text-black text-sm block"
+    initial={{ opacity: 0, y: 10 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay: 0.4, duration: 0.6, ease: "easeOut" }}
+  >
+    Find Your Perfect Space
+  </motion.span>
+</motion.span>
         </Link>
 
         {/* Desktop Navigation */}

@@ -18,6 +18,8 @@ import Contact from "./pages/Contact";
 import AddProperty from "./pages/AddProperty";
 import NotFound from "./pages/NotFound";
 
+import './App.css';
+
 const queryClient = new QueryClient();
 
 const App = () => (
