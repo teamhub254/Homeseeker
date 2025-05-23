@@ -1,7 +1,6 @@
-
-import { 
-  Card, 
-  CardContent, 
+import {
+  Card,
+  CardContent,
   CardFooter,
   CardHeader
 } from "@/components/ui/card";
@@ -35,35 +34,41 @@ const PropertyCard = ({
   imageUrl,
   forSale
 }: PropertyCardProps) => {
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    e.currentTarget.src = '/placeholder-property.jpg';
+  };
+
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
       <div className="relative">
         {/* Property Image */}
         <Link to={`/properties/${id}`}>
-          <img 
-            src={imageUrl} 
+          <img
+            src={imageUrl || '/placeholder-property.jpg'}
             alt={title}
             className="h-52 w-full object-cover"
+            onError={handleImageError}
           />
         </Link>
-        
+
         {/* Sale/Rent Badge */}
-        <Badge 
+        <Badge
           className={`absolute top-2 left-2 ${forSale ? 'bg-nest-secondary' : 'bg-nest-accent'}`}
         >
           {forSale ? 'For Sale' : 'For Rent'}
         </Badge>
-        
+
         {/* Favorite Button */}
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           size="icon"
           className="absolute top-2 right-2 bg-white/80 hover:bg-white text-nest-accent hover:text-nest-accent rounded-full h-8 w-8"
+          aria-label="Add to favorites"
         >
           <Heart className="h-5 w-5" />
         </Button>
       </div>
-      
+
       <CardHeader className="p-4 pb-2">
         <div className="flex justify-between items-start">
           <Link to={`/properties/${id}`} className="hover:text-nest-primary">
@@ -79,7 +84,7 @@ const PropertyCard = ({
           <p className="truncate">{address}</p>
         </div>
       </CardHeader>
-      
+
       <CardContent className="p-4 pt-2">
         <div className="grid grid-cols-3 gap-2 py-2">
           <div className="flex flex-col items-center">
@@ -96,7 +101,7 @@ const PropertyCard = ({
           </div>
         </div>
       </CardContent>
-      
+
       <CardFooter className="p-4 pt-0 flex justify-between">
         <Badge variant="outline" className="text-xs">
           {type}

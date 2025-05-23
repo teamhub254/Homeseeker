@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,6 +10,7 @@ import { toast } from "@/components/ui/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User, Phone, Mail, Upload, Building, Home } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { UserRole } from "@/integrations/supabase/types";
 
 interface Profile {
   id: string;
@@ -18,8 +18,7 @@ interface Profile {
   last_name: string | null;
   phone: string | null;
   avatar_url: string | null;
-  // We're removing the role property from the interface since it doesn't exist in the database yet
-  // role: string | null;
+  role: UserRole;
 }
 
 const Profile = () => {
@@ -47,17 +46,17 @@ const Profile = () => {
   const fetchProfile = async () => {
     try {
       setLoading(true);
-      
+
       if (!user) return;
-      
+
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
         .eq("user_id", user.id)
         .single();
-        
+
       if (error) throw error;
-      
+
       // Set profile data
       setProfile(data as Profile);
       setFormData({
@@ -65,11 +64,11 @@ const Profile = () => {
         last_name: data.last_name || "",
         phone: data.phone || "",
       });
-      
+
       if (data.avatar_url) {
         setAvatarUrl(data.avatar_url);
       }
-      
+
       // Check if user is a property lister based on user metadata
       // This is a temporary solution until we have the role column
       const { data: userData } = await supabase.auth.getUser();
@@ -91,14 +90,14 @@ const Profile = () => {
   const fetchPropertyCount = async () => {
     try {
       if (!user) return;
-      
+
       const { count, error } = await supabase
         .from("properties")
         .select("*", { count: "exact", head: true })
         .eq("user_id", user.id);
-        
+
       if (error) throw error;
-      
+
       setPropertyCount(count || 0);
     } catch (error) {
       console.error("Error fetching property count:", error);
@@ -115,25 +114,25 @@ const Profile = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       setUpdating(true);
-      
+
       if (!user) return;
-      
+
       const updates = {
         user_id: user.id,
         ...formData,
         updated_at: new Date().toISOString(),
       };
-      
+
       const { error } = await supabase
         .from("profiles")
         .update(updates)
         .eq("user_id", user.id);
-        
+
       if (error) throw error;
-      
+
       toast({
         title: "Profile updated",
         description: "Your profile has been updated successfully.",
@@ -155,33 +154,33 @@ const Profile = () => {
       if (!e.target.files || e.target.files.length === 0) {
         return;
       }
-      
+
       const file = e.target.files[0];
       const fileExt = file.name.split('.').pop();
       const filePath = `avatars/${user?.id}-${Math.random()}.${fileExt}`;
-      
+
       const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(filePath, file);
-        
+
       if (uploadError) throw uploadError;
-      
+
       // Get public URL
       const { data } = supabase.storage
         .from('avatars')
         .getPublicUrl(filePath);
-        
+
       if (data && data.publicUrl) {
         setAvatarUrl(data.publicUrl);
-        
+
         // Update profile with avatar URL
         const { error: updateError } = await supabase
           .from('profiles')
           .update({ avatar_url: data.publicUrl })
           .eq('user_id', user?.id);
-          
+
         if (updateError) throw updateError;
-        
+
         toast({
           title: "Avatar updated",
           description: "Your profile picture has been updated successfully.",
@@ -269,11 +268,11 @@ const Profile = () => {
                         Property Lister
                       </div>
                     )}
-                    
+
                     <div className="w-full mt-6">
                       {isPropertyLister && (
-                        <Button 
-                          variant="outline" 
+                        <Button
+                          variant="outline"
                           className="w-full mb-3 justify-start"
                           onClick={() => navigate("/my-listings")}
                         >
@@ -281,29 +280,29 @@ const Profile = () => {
                           My Properties ({propertyCount})
                         </Button>
                       )}
-                      
-                      <Button 
-                        variant="outline" 
+
+                      <Button
+                        variant="outline"
                         className="w-full mb-3 justify-start"
                         onClick={() => navigate("/saved-properties")}
                       >
-                        <svg 
-                          className="mr-2 h-4 w-4" 
-                          xmlns="http://www.w3.org/2000/svg" 
-                          viewBox="0 0 24 24" 
-                          fill="none" 
-                          stroke="currentColor" 
-                          strokeWidth="2" 
-                          strokeLinecap="round" 
+                        <svg
+                          className="mr-2 h-4 w-4"
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
                           strokeLinejoin="round"
                         >
                           <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
                         </svg>
                         Saved Properties
                       </Button>
-                      
-                      <Button 
-                        variant="outline" 
+
+                      <Button
+                        variant="outline"
                         className="w-full justify-start"
                         onClick={() => navigate("/my-inquiries")}
                       >

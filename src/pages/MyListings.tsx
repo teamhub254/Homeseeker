@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRole } from "@/hooks/useRole";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -30,29 +31,18 @@ interface Property {
 const MyListings = () => {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
-  const [role, setRole] = useState<string | null>(null);
   const { user } = useAuth();
+  const { isLister, loading: roleLoading } = useRole();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user) {
-      fetchUserRole();
+    if (user && !roleLoading) {
       fetchProperties();
     }
-  }, [user]);
-
-  const fetchUserRole = async () => {
-    if (!user) return;
-    const { data, error } = await supabase
-      .from('users')
-      .select('role')
-      .eq('id', user.id)
-      .single();
-    if (!error && data) setRole(data.role);
-  };
+  }, [user, roleLoading]);
 
   // If not a lister, show error or redirect
-  if (role && role !== 'lister') {
+  if (!roleLoading && !isLister) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="bg-white p-8 rounded shadow text-center">

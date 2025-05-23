@@ -1,4 +1,4 @@
-export type UserRole = 'seeker' | 'agent';
+export type UserRole = 'seeker' | 'lister';
 
 export type Profile = {
   id: string;

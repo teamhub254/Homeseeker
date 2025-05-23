@@ -85,18 +85,19 @@ const Auth = () => {
       if (error) throw error;
 
       // Set role in users table
-      const role = isLister ? 'lister' : 'renter';
+      const role = isLister ? 'lister' : 'seeker';
       const { error: updateError } = await supabase
         .from('users')
-        .update({
+        .insert([{
+          id: data.user?.id,
           full_name: name,
           role: role,
-          is_lister: isLister,
-        })
-        .eq('id', data.user?.id);
+          email: email
+        }]);
 
       if (updateError) {
-        console.error('Error updating user role:', updateError);
+        console.error('Error setting user role:', updateError);
+        throw updateError;
       }
 
       toast({

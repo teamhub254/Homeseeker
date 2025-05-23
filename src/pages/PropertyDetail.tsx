@@ -1,4 +1,3 @@
-
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
@@ -25,11 +24,32 @@ import {
   ArrowLeft
 } from "lucide-react";
 
+interface Property {
+  id: string;
+  title: string;
+  description: string;
+  price: number;
+  bedrooms: string;
+  bathrooms: string;
+  property_type: string;
+  status: string;
+  area: number;
+  address: string;
+  city: string;
+  state: string;
+  zip_code: string;
+  images: string[];
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
 const PropertyDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [activeImage, setActiveImage] = useState(0);
   const [isSaved, setIsSaved] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [property, setProperty] = useState<Property | null>(null);
   const [contactFormData, setContactFormData] = useState({
     name: '',
     email: '',
@@ -39,13 +59,41 @@ const PropertyDetail = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const property = properties.find(p => p.id === id);
+  useEffect(() => {
+    if (id) {
+      fetchProperty();
+    }
+  }, [id]);
 
   useEffect(() => {
     if (user && property) {
       checkIfPropertyIsSaved();
     }
   }, [user, property]);
+
+  const fetchProperty = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('properties')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+      if (!data) {
+        throw new Error('Property not found');
+      }
+
+      setProperty(data);
+    } catch (error) {
+      console.error('Error fetching property:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load property details",
+        variant: "destructive",
+      });
+    }
+  };
 
   const checkIfPropertyIsSaved = async () => {
     if (!user || !property) return;
@@ -160,17 +208,45 @@ const PropertyDetail = () => {
     try {
       setIsLoading(true);
 
+      // Validate form data
+      if (!contactFormData.name || !contactFormData.email || !contactFormData.phone || !contactFormData.message) {
+        throw new Error('Please fill in all fields');
+      }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(contactFormData.email)) {
+        throw new Error('Please enter a valid email address');
+      }
+
+      // Validate phone number (basic validation)
+      const phoneRegex = /^\+?[\d\s-]{10,}$/;
+      if (!phoneRegex.test(contactFormData.phone)) {
+        throw new Error('Please enter a valid phone number');
+      }
+
       const formData = {
         ...contactFormData,
         user_id: user?.id || null,
-        property_id: property.id
+        property_id: property.id,
+        created_at: new Date().toISOString(),
+        status: 'new' // Add status field for tracking
       };
 
       const { error } = await supabase
         .from('property_inquiries')
         .insert([formData]);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        if (error.code === '42P01') {
+          throw new Error('The inquiries table does not exist. Please contact support.');
+        } else if (error.code === '23505') {
+          throw new Error('You have already sent an inquiry for this property.');
+        } else {
+          throw new Error(error.message || 'Failed to send message');
+        }
+      }
 
       setContactFormData({
         name: '',
@@ -183,11 +259,11 @@ const PropertyDetail = () => {
         title: "Inquiry sent",
         description: "Your message has been sent to the property owner",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error sending inquiry:', error);
       toast({
         title: "Error",
-        description: "There was a problem sending your message",
+        description: error.message || "There was a problem sending your message. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -248,167 +324,149 @@ const PropertyDetail = () => {
               {property.title}
             </h1>
             <div className="flex items-center text-muted-foreground">
-              <MapPin className="h-4 w-4 mr-1 text-nest-secondary" />
-              <span>
-                {property.address}, {property.city}, {property.state} {property.zipCode}
-              </span>
+              <MapPin className="h-4 w-4 mr-1" />
+              <span>{`${property.address}, ${property.city}, ${property.state} ${property.zip_code}`}</span>
             </div>
           </div>
-          <div className="mt-4 md:mt-0">
-            <div className="text-2xl md:text-3xl font-bold text-nest-primary">
-              ${property.price.toLocaleString()}
-              {!property.forSale && <span className="text-lg text-muted-foreground">/mo</span>}
-            </div>
+          <div className="flex items-center gap-2 mt-4 md:mt-0">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleShareProperty}
+              className="rounded-full"
+              aria-label="Share property"
+            >
+              <Share className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleSaveProperty}
+              disabled={isLoading}
+              className={`rounded-full ${isSaved ? 'text-red-500' : ''}`}
+              aria-label={isSaved ? "Remove from saved" : "Save property"}
+            >
+              <Heart className="h-4 w-4" />
+            </Button>
           </div>
         </div>
 
         {/* Property Images */}
         <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-8">
-          <div className="relative h-[300px] md:h-[500px]">
+          <div className="relative aspect-video">
             <img
-              src={property.images[activeImage]}
+              src={property.images[activeImage] || '/placeholder-property.jpg'}
               alt={property.title}
               className="w-full h-full object-cover"
             />
-
-            {/* For Sale/Rent Badge */}
-            <Badge
-              className={`absolute top-4 left-4 ${property.forSale ? 'bg-nest-secondary' : 'bg-nest-accent'}`}
-            >
-              {property.forSale ? 'For Sale' : 'For Rent'}
-            </Badge>
-
-            {/* Action Buttons */}
-            <div className="absolute top-4 right-4 flex space-x-2">
-              <Button
-                variant="secondary"
-                size="icon"
-                className={`${isSaved ? 'bg-nest-accent text-white' : 'bg-white/80 hover:bg-white text-nest-accent hover:text-nest-accent'} rounded-full h-10 w-10`}
-                onClick={handleSaveProperty}
-                disabled={isLoading}
-              >
-                <Heart className="h-5 w-5" fill={isSaved ? "currentColor" : "none"} />
-              </Button>
-              <Button
-                variant="secondary"
-                size="icon"
-                className="bg-white/80 hover:bg-white text-nest-dark hover:text-nest-dark rounded-full h-10 w-10"
-                onClick={handleShareProperty}
-              >
-                <Share className="h-5 w-5" />
-              </Button>
+          </div>
+          {property.images.length > 1 && (
+            <div className="p-4 flex gap-2 overflow-x-auto">
+              {property.images.map((image, index) => (
+                <button
+                  key={index}
+                  onClick={() => setActiveImage(index)}
+                  className={`relative w-20 h-20 flex-shrink-0 rounded-md overflow-hidden ${activeImage === index ? 'ring-2 ring-nest-primary' : ''
+                    }`}
+                >
+                  <img
+                    src={image}
+                    alt={`${property.title} - Image ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
             </div>
-          </div>
-
-          {/* Thumbnail Images */}
-          <div className="grid grid-cols-3 gap-2 p-2">
-            {property.images.map((image, index) => (
-              <button
-                key={index}
-                onClick={() => setActiveImage(index)}
-                className={`h-24 relative rounded overflow-hidden ${index === activeImage ? 'ring-2 ring-nest-primary' : ''
-                  }`}
-              >
-                <img
-                  src={image}
-                  alt={`${property.title} ${index + 1}`}
-                  className="w-full h-full object-cover"
-                />
-              </button>
-            ))}
-          </div>
+          )}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Property Overview */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-xl font-bold mb-4 text-nest-dark">Property Overview</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="flex flex-col items-center p-4 bg-gray-50 rounded">
-                  <Bed className="h-6 w-6 text-nest-primary mb-2" />
-                  <span className="text-sm text-muted-foreground">Bedrooms</span>
-                  <span className="font-bold">{property.bedrooms}</span>
+        {/* Property Details */}
+        <div className="grid md:grid-cols-3 gap-8">
+          <div className="md:col-span-2">
+            {/* Price and Status */}
+            <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="text-2xl font-bold text-nest-primary">
+                    ${property.price.toLocaleString()}
+                    {property.status === 'rent' && <span className="text-sm text-muted-foreground">/mo</span>}
+                  </p>
+                  <Badge className={`mt-2 ${property.status === 'sale' ? 'bg-nest-secondary' : 'bg-nest-accent'}`}>
+                    {property.status === 'sale' ? 'For Sale' : 'For Rent'}
+                  </Badge>
                 </div>
-                <div className="flex flex-col items-center p-4 bg-gray-50 rounded">
-                  <Bath className="h-6 w-6 text-nest-primary mb-2" />
-                  <span className="text-sm text-muted-foreground">Bathrooms</span>
-                  <span className="font-bold">{property.bathrooms}</span>
-                </div>
-                <div className="flex flex-col items-center p-4 bg-gray-50 rounded">
-                  <Square className="h-6 w-6 text-nest-primary mb-2" />
-                  <span className="text-sm text-muted-foreground">Area</span>
-                  <span className="font-bold">{property.area} sq ft</span>
-                </div>
-                <div className="flex flex-col items-center p-4 bg-gray-50 rounded">
-                  <Calendar className="h-6 w-6 text-nest-primary mb-2" />
-                  <span className="text-sm text-muted-foreground">Year Built</span>
-                  <span className="font-bold">{property.yearBuilt}</span>
+                <div className="text-right">
+                  <p className="text-sm text-muted-foreground">Listed on</p>
+                  <p className="font-medium">
+                    {new Date(property.created_at).toLocaleDateString()}
+                  </p>
                 </div>
               </div>
             </div>
 
             {/* Description */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-xl font-bold mb-4 text-nest-dark">Description</h2>
-              <p className="text-muted-foreground">
+            <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+              <h2 className="text-xl font-bold mb-4">Description</h2>
+              <p className="text-muted-foreground whitespace-pre-line">
                 {property.description}
               </p>
             </div>
 
             {/* Features */}
             <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-xl font-bold mb-4 text-nest-dark">Features</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-y-2">
-                {property.features.map((feature, index) => (
-                  <div key={index} className="flex items-center">
-                    <div className="h-2 w-2 rounded-full bg-nest-primary mr-2" />
-                    <span>{feature}</span>
+              <h2 className="text-xl font-bold mb-4">Features</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="flex items-center gap-2">
+                  <Bed className="h-5 w-5 text-nest-primary" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Bedrooms</p>
+                    <p className="font-medium">{property.bedrooms}</p>
                   </div>
-                ))}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Bath className="h-5 w-5 text-nest-primary" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Bathrooms</p>
+                    <p className="font-medium">{property.bathrooms}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Square className="h-5 w-5 text-nest-primary" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Area</p>
+                    <p className="font-medium">{property.area} sq ft</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5 text-nest-primary" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Listed</p>
+                    <p className="font-medium">
+                      {new Date(property.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Contact Agent */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-xl font-bold mb-4 text-nest-dark">Contact Agent</h2>
-              <div className="flex items-center mb-4">
-                <div className="h-12 w-12 rounded-full bg-nest-light text-nest-primary flex items-center justify-center mr-3">
-                  <User className="h-6 w-6" />
-                </div>
-                <div>
-                  <p className="font-medium">{property.owner.name}</p>
-                  <p className="text-sm text-muted-foreground">Property Agent</p>
-                </div>
-              </div>
-              <div className="space-y-3 mb-4">
-                <a href={`tel:${property.owner.phone}`} className="flex items-center text-muted-foreground hover:text-nest-primary">
-                  <Phone className="h-4 w-4 mr-2" />
-                  {property.owner.phone}
-                </a>
-                <a href={`mailto:${property.owner.email}`} className="flex items-center text-muted-foreground hover:text-nest-primary">
-                  <Mail className="h-4 w-4 mr-2" />
-                  {property.owner.email}
-                </a>
-              </div>
+          {/* Contact Form */}
+          <div className="md:col-span-1">
+            <div className="bg-white rounded-lg shadow-sm p-6 sticky top-6">
+              <h2 className="text-xl font-bold mb-4">Contact Agent</h2>
               <form onSubmit={handleContactFormSubmit} className="space-y-4">
                 <div>
-                  <Label htmlFor="name">Your Name</Label>
+                  <Label htmlFor="name">Name</Label>
                   <Input
                     id="name"
                     name="name"
                     value={contactFormData.name}
                     onChange={handleContactFormChange}
                     required
-                    className="w-full px-4 py-2 border border-gray-200 rounded"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="email">Your Email</Label>
+                  <Label htmlFor="email">Email</Label>
                   <Input
                     id="email"
                     name="email"
@@ -416,18 +474,17 @@ const PropertyDetail = () => {
                     value={contactFormData.email}
                     onChange={handleContactFormChange}
                     required
-                    className="w-full px-4 py-2 border border-gray-200 rounded"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="phone">Your Phone</Label>
+                  <Label htmlFor="phone">Phone</Label>
                   <Input
                     id="phone"
                     name="phone"
                     type="tel"
                     value={contactFormData.phone}
                     onChange={handleContactFormChange}
-                    className="w-full px-4 py-2 border border-gray-200 rounded"
+                    required
                   />
                 </div>
                 <div>
@@ -435,12 +492,10 @@ const PropertyDetail = () => {
                   <Textarea
                     id="message"
                     name="message"
-                    rows={3}
                     value={contactFormData.message}
                     onChange={handleContactFormChange}
                     required
-                    className="w-full px-4 py-2 border border-gray-200 rounded"
-                    defaultValue={`I'm interested in this property: ${property.title}`}
+                    className="min-h-[100px]"
                   />
                 </div>
                 <Button
@@ -451,41 +506,6 @@ const PropertyDetail = () => {
                   {isLoading ? "Sending..." : "Send Message"}
                 </Button>
               </form>
-            </div>
-
-            {/* Similar Properties */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-xl font-bold mb-4 text-nest-dark">Similar Properties</h2>
-              <div className="space-y-4">
-                {properties
-                  .filter(p => p.id !== property.id && p.type === property.type)
-                  .slice(0, 2)
-                  .map(similarProperty => (
-                    <Link key={similarProperty.id} to={`/properties/${similarProperty.id}`} className="block">
-                      <div className="flex border rounded overflow-hidden hover:shadow-md transition-shadow">
-                        <div className="h-24 w-24 flex-shrink-0">
-                          <img
-                            src={similarProperty.imageUrl}
-                            alt={similarProperty.title}
-                            className="h-full w-full object-cover"
-                          />
-                        </div>
-                        <div className="flex-1 p-3">
-                          <h3 className="font-medium line-clamp-1">{similarProperty.title}</h3>
-                          <p className="text-nest-primary text-sm font-bold">
-                            ${similarProperty.price.toLocaleString()}
-                            {!similarProperty.forSale && <span className="text-xs text-muted-foreground">/mo</span>}
-                          </p>
-                          <div className="flex text-xs text-muted-foreground">
-                            <span className="mr-2">{similarProperty.bedrooms} beds</span>
-                            <span className="mr-2">{similarProperty.bathrooms} baths</span>
-                            <span>{similarProperty.area} sq ft</span>
-                          </div>
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
-              </div>
             </div>
           </div>
         </div>

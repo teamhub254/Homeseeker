@@ -1,9 +1,7 @@
-
 import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import PropertyCard from '../components/PropertyCard';
 import SearchBar from '../components/SearchBar';
-import { properties } from '../data/properties';
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -22,10 +20,33 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Filter, MapPin, X } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+
+interface Property {
+  id: string;
+  title: string;
+  description: string;
+  price: number;
+  bedrooms: string;
+  bathrooms: string;
+  property_type: string;
+  status: string;
+  area: number;
+  address: string;
+  city: string;
+  state: string;
+  zip_code: string;
+  images: string[];
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+}
 
 const Properties = () => {
-  const [filteredProperties, setFilteredProperties] = useState(properties);
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
     propertyType: [],
     priceRange: [0, 2000000],
@@ -34,13 +55,77 @@ const Properties = () => {
     listingType: "all",
   });
 
+  // Search state
+  const [location, setLocation] = useState("");
+  const [propertyType, setPropertyType] = useState("");
+  const [priceRange, setPriceRange] = useState("");
+
+  useEffect(() => {
+    fetchProperties();
+  }, []);
+
+  const fetchProperties = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('properties')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setProperties(data || []);
+      setFilteredProperties(data || []);
+    } catch (error) {
+      console.error('Error fetching properties:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchFilteredProperties = async () => {
+    try {
+      setLoading(true);
+      let query = supabase
+        .from('properties')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (location) {
+        query = query.ilike('address', `%${location}%`);
+      }
+      if (propertyType && propertyType !== 'all') {
+        query = query.eq('property_type', propertyType);
+      }
+      if (priceRange && priceRange !== 'any') {
+        const [min, max] = priceRange.split('-').map(Number);
+        if (max) {
+          query = query.gte('price', min).lte('price', max);
+        } else {
+          query = query.gte('price', min);
+        }
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      setFilteredProperties(data || []);
+    } catch (error) {
+      console.error('Error fetching filtered properties:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    fetchFilteredProperties();
+  };
+
   const applyFilters = () => {
     let results = properties;
 
     // Filter by property type
     if (filters.propertyType.length > 0) {
       results = results.filter(property =>
-        filters.propertyType.includes(property.type.toLowerCase())
+        filters.propertyType.includes(property.property_type.toLowerCase())
       );
     }
 
@@ -52,10 +137,10 @@ const Properties = () => {
     // Filter by bedrooms
     if (filters.bedrooms) {
       if (filters.bedrooms === "4+") {
-        results = results.filter(property => property.bedrooms >= 4);
+        results = results.filter(property => parseInt(property.bedrooms) >= 4);
       } else {
         results = results.filter(
-          property => property.bedrooms.toString() === filters.bedrooms
+          property => property.bedrooms === filters.bedrooms
         );
       }
     }
@@ -63,18 +148,17 @@ const Properties = () => {
     // Filter by bathrooms
     if (filters.bathrooms) {
       if (filters.bathrooms === "3+") {
-        results = results.filter(property => property.bathrooms >= 3);
+        results = results.filter(property => parseInt(property.bathrooms) >= 3);
       } else {
         results = results.filter(
-          property => property.bathrooms.toString() === filters.bathrooms
+          property => property.bathrooms === filters.bathrooms
         );
       }
     }
 
     // Filter by listing type (sale or rent)
     if (filters.listingType !== "all") {
-      const isForSale = filters.listingType === "sale";
-      results = results.filter(property => property.forSale === isForSale);
+      results = results.filter(property => property.status === filters.listingType);
     }
 
     setFilteredProperties(results);
@@ -82,7 +166,7 @@ const Properties = () => {
 
   useEffect(() => {
     applyFilters();
-  }, [filters]);
+  }, [filters, properties]);
 
   const handlePropertyTypeChange = (type: string) => {
     setFilters(prev => {
@@ -131,7 +215,15 @@ const Properties = () => {
       <div className="container mx-auto px-4 py-8">
         {/* Search and Filters */}
         <div className="mb-8">
-          <SearchBar />
+          <SearchBar
+            location={location}
+            propertyType={propertyType}
+            priceRange={priceRange}
+            onLocationChange={setLocation}
+            onPropertyTypeChange={setPropertyType}
+            onPriceRangeChange={setPriceRange}
+            onSearch={handleSearch}
+          />
         </div>
 
         <div className="flex flex-col lg:flex-row gap-6">
@@ -145,6 +237,7 @@ const Properties = () => {
                   size="sm"
                   onClick={resetFilters}
                   className="text-xs text-nest-primary hover:text-nest-primary/80 h-auto p-0"
+                  title="Reset All Filters"
                 >
                   Reset All
                 </Button>
@@ -185,46 +278,42 @@ const Properties = () => {
                 {/* Price Range */}
                 <div>
                   <h4 className="font-medium mb-3">Price Range</h4>
-                  <div className="mb-6">
-                    <Slider
-                      defaultValue={[0, 2000000]}
-                      value={filters.priceRange}
-                      min={0}
-                      max={2000000}
-                      step={50000}
-                      onValueChange={handlePriceChange}
-                      className="my-6"
-                    />
-                    <div className="flex justify-between text-sm text-muted-foreground">
-                      <span>{formatPrice(filters.priceRange[0])}</span>
-                      <span>{formatPrice(filters.priceRange[1])}</span>
-                    </div>
+                  <Slider
+                    min={0}
+                    max={2000000}
+                    step={100000}
+                    value={filters.priceRange}
+                    onValueChange={handlePriceChange}
+                  />
+                  <div className="flex justify-between mt-2">
+                    <span>{formatPrice(filters.priceRange[0])}</span>
+                    <span>{formatPrice(filters.priceRange[1])}</span>
                   </div>
                 </div>
 
-                {/* Property Type Filter */}
+                {/* Property Type */}
                 <div>
                   <h4 className="font-medium mb-3">Property Type</h4>
                   <div className="space-y-2">
-                    {["apartment", "house", "condo", "townhouse", "studio"].map((type) => (
-                      <div key={type} className="flex items-center">
+                    {['house', 'apartment', 'condo', 'townhouse'].map((type) => (
+                      <div key={type} className="flex items-center space-x-2">
                         <Checkbox
-                          id={`type-${type}`}
+                          id={type}
                           checked={filters.propertyType.includes(type)}
                           onCheckedChange={() => handlePropertyTypeChange(type)}
                         />
                         <label
-                          htmlFor={`type-${type}`}
-                          className="ml-2 text-sm cursor-pointer capitalize"
+                          htmlFor={type}
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                         >
-                          {type}
+                          {type.charAt(0).toUpperCase() + type.slice(1)}
                         </label>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                {/* Bedrooms Filter */}
+                {/* Bedrooms */}
                 <div>
                   <h4 className="font-medium mb-3">Bedrooms</h4>
                   <Select
@@ -236,7 +325,7 @@ const Properties = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        <SelectItem value="any">Any</SelectItem>
+                        <SelectItem value="">Any</SelectItem>
                         <SelectItem value="1">1</SelectItem>
                         <SelectItem value="2">2</SelectItem>
                         <SelectItem value="3">3</SelectItem>
@@ -246,7 +335,7 @@ const Properties = () => {
                   </Select>
                 </div>
 
-                {/* Bathrooms Filter */}
+                {/* Bathrooms */}
                 <div>
                   <h4 className="font-medium mb-3">Bathrooms</h4>
                   <Select
@@ -258,7 +347,7 @@ const Properties = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        <SelectItem value="any">Any</SelectItem>
+                        <SelectItem value="">Any</SelectItem>
                         <SelectItem value="1">1</SelectItem>
                         <SelectItem value="2">2</SelectItem>
                         <SelectItem value="3+">3+</SelectItem>
@@ -465,21 +554,25 @@ const Properties = () => {
             </div>
 
             {/* Properties Grid */}
-            {filteredProperties.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            {loading ? (
+              <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#8b00ff]"></div>
+              </div>
+            ) : filteredProperties.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredProperties.map((property) => (
                   <PropertyCard
                     key={property.id}
                     id={property.id}
                     title={property.title}
-                    address={`${property.address}, ${property.city}, ${property.state}`}
+                    address={`${property.address}, ${property.city}, ${property.state} ${property.zip_code}`}
                     price={property.price}
-                    bedrooms={property.bedrooms}
-                    bathrooms={property.bathrooms}
+                    bedrooms={parseInt(property.bedrooms)}
+                    bathrooms={parseInt(property.bathrooms)}
                     area={property.area}
-                    type={property.type}
-                    imageUrl={property.imageUrl}
-                    forSale={property.forSale}
+                    type={property.property_type}
+                    imageUrl={property.images[0] || '/placeholder-property.jpg'}
+                    forSale={property.status === 'sale'}
                   />
                 ))}
               </div>

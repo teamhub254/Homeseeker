@@ -83,37 +83,52 @@ const EditProperty = () => {
     const fetchProperty = async () => {
         if (!user || !id) return;
         setLoading(true);
-        const { data, error } = await supabase
-            .from('properties')
-            .select('*')
-            .eq('id', id)
-            .eq('user_id', user.id)
-            .single();
-        if (error || !data) {
+        try {
+            const { data, error } = await supabase
+                .from('properties')
+                .select('*')
+                .eq('id', id)
+                .single();
+
+            if (error) throw error;
+
+            // Check if the property exists and belongs to the user
+            if (!data || data.user_id !== user.id) {
+                toast({
+                    title: "Error",
+                    description: "Property not found or you do not have permission to edit it.",
+                    variant: "destructive",
+                });
+                navigate('/my-listings');
+                return;
+            }
+
+            form.reset({
+                title: data.title || "",
+                description: data.description || "",
+                price: data.price ? String(data.price) : "",
+                bedrooms: data.bedrooms || "1",
+                bathrooms: data.bathrooms || "1",
+                propertyType: data.property_type || "house",
+                status: data.status || "sale",
+                area: data.area ? String(data.area) : "",
+                address: data.address || "",
+                city: data.city || "",
+                state: data.state || "",
+                zipCode: data.zip_code || "",
+            });
+            setExistingImages(data.images || []);
+        } catch (error: any) {
+            console.error("Error fetching property:", error);
             toast({
                 title: "Error",
-                description: "Property not found or you do not have permission to edit it.",
+                description: error.message || "Failed to fetch property details.",
                 variant: "destructive",
             });
             navigate('/my-listings');
-            return;
+        } finally {
+            setLoading(false);
         }
-        form.reset({
-            title: data.title || "",
-            description: data.description || "",
-            price: data.price ? String(data.price) : "",
-            bedrooms: data.bedrooms || "1",
-            bathrooms: data.bathrooms || "1",
-            propertyType: data.property_type || "house",
-            status: data.status || "sale",
-            area: data.area ? String(data.area) : "",
-            address: data.address || "",
-            city: data.city || "",
-            state: data.state || "",
-            zipCode: data.zip_code || "",
-        });
-        setExistingImages(data.images || []);
-        setLoading(false);
     };
 
     // If not a lister, show error or redirect

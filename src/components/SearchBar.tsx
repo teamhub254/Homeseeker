@@ -1,5 +1,3 @@
-
-import { useState } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
@@ -12,21 +10,28 @@ import {
   SelectValue
 } from "@/components/ui/select";
 
-const SearchBar = () => {
-  const [location, setLocation] = useState("");
-  const [propertyType, setPropertyType] = useState("");
-  const [priceRange, setPriceRange] = useState("");
+interface SearchBarProps {
+  location: string;
+  propertyType: string;
+  priceRange: string;
+  onLocationChange: (value: string) => void;
+  onPropertyTypeChange: (value: string) => void;
+  onPriceRangeChange: (value: string) => void;
+  onSearch: (e: React.FormEvent) => void;
+}
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Search with:", { location, propertyType, priceRange });
-    // In a real app, we would redirect to search results
-    // or filter the current listings
-  };
-
+const SearchBar = ({
+  location,
+  propertyType,
+  priceRange,
+  onLocationChange,
+  onPropertyTypeChange,
+  onPriceRangeChange,
+  onSearch,
+}: SearchBarProps) => {
   return (
     <form
-      onSubmit={handleSearch}
+      onSubmit={onSearch}
       className="bg-white rounded-lg shadow-md p-4 md:p-6 max-w-4xl mx-auto"
     >
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -36,12 +41,12 @@ const SearchBar = () => {
             placeholder="Location"
             className="w-full"
             value={location}
-            onChange={(e) => setLocation(e.target.value)}
+            onChange={(e) => onLocationChange(e.target.value)}
           />
         </div>
 
         <div className="md:col-span-1">
-          <Select value={propertyType} onValueChange={setPropertyType}>
+          <Select value={propertyType} onValueChange={onPropertyTypeChange}>
             <SelectTrigger>
               <SelectValue placeholder="Property Type" />
             </SelectTrigger>
@@ -57,9 +62,8 @@ const SearchBar = () => {
           </Select>
         </div>
 
-
         <div className="md:col-span-1">
-          <Select value={priceRange} onValueChange={setPriceRange}>
+          <Select value={priceRange} onValueChange={onPriceRangeChange}>
             <SelectTrigger>
               <SelectValue placeholder="Price Range" />
             </SelectTrigger>
@@ -86,7 +90,7 @@ const SearchBar = () => {
           </Button>
         </div>
       </div>
-    </form >
+    </form>
   );
 };
 

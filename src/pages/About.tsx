@@ -49,20 +49,32 @@ const About = () => {
                 <div className="grid md:grid-cols-3 gap-6 mt-6">
                   {[
                     {
-                      name: "Sarah Johnson",
+                      name: "John Doe",
                       role: "CEO & Founder",
                       bio: "15+ years in luxury real estate",
                     },
                     {
-                      name: "Michael Chen",
-                      role: "CTO",
+                      name: "John Doe",
+                      role: "Backend Developer",
                       bio: "Former tech lead at leading property platforms",
                     },
                     {
-                      name: "Priya Patel",
-                      role: "Head of Customer Relations",
+                      name: "John Doe",
+                      role: "CEO & Founder",
+                      bio: "Dedicated to exceptional customer experiences",
+                    },
+                    {
+                      name: "John Doe",
+                      role: "Frontend Developer",
+                      bio: "Dedicated to exceptional customer experiences",
+                    },
+                    {
+                      name: "John Doe",
+                      role: "Frontend Developer",
                       bio: "Dedicated to exceptional customer experiences",
                     }
+
+
                   ].map((member, index) => (
                     <div key={index} className="text-center">
                       <div className="w-24 h-24 bg-purple-100 rounded-full mx-auto mb-4 flex items-center justify-center">

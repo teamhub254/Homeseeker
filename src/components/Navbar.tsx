@@ -1,44 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Menu, Search, Home, Plus, X, UserIcon, Building } from "lucide-react";
 import User from "@/components/User";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { useRole } from "@/hooks/useRole";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [userRole, setUserRole] = useState<string | null>(null);
   const { user } = useAuth();
-
-  useEffect(() => {
-    if (user) {
-      fetchUserRole();
-    } else {
-      setUserRole(null);
-    }
-  }, [user]);
-
-  const fetchUserRole = async () => {
-    try {
-      if (!user) return;
-      // Fetch role from users table
-      const { data, error } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', user.id)
-        .single();
-      if (error) {
-        console.error('Error fetching user role:', error);
-        return;
-      }
-      setUserRole(data?.role || null);
-    } catch (error) {
-      console.error('Error fetching user role:', error);
-    }
-  };
-
-  const isLister = userRole === 'lister';
+  const { isLister } = useRole();
 
   return (
     <nav className="bg-white shadow-sm sticky top-0 z-50 w-full">
