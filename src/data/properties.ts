@@ -70,7 +70,7 @@ export const properties: Property[] = [
     type: 'House',
     forSale: true,
     features: ['Updated Kitchen', 'Finished Basement', 'Large Backyard', 'Attached Garage', 'Fireplace', 'Deck'],
-    imageUrl: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?auto=format&fit=crop&q=80&w=800&h=500',
+    imageUrl: 'https://www.pinterest.com/pin/1066156911795744008/',
     images: [
       'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?auto=format&fit=crop&q=80&w=800&h=500',
       'https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&q=80&w=800&h=500',
@@ -99,7 +99,7 @@ export const properties: Property[] = [
     type: 'Condo',
     forSale: true,
     features: ['Ocean View', 'Private Beach Access', 'Marble Countertops', 'Smart Home System', 'Wine Cellar', '24/7 Security'],
-    imageUrl: 'https://images.unsplash.com/photo-1607684282763-a32e29d5431c?auto=format&fit=crop&q=80&w=800&h=500',
+    imageUrl: 'https://www.pinterest.com/pin/34128909671553061/',
     images: [
       'https://images.unsplash.com/photo-1607684282763-a32e29d5431c?auto=format&fit=crop&q=80&w=800&h=500',
       'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&q=80&w=800&h=500',
