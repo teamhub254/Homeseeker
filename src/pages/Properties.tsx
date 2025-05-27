@@ -22,6 +22,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Filter, MapPin, X } from "lucide-react";
+import { SearchX } from "lucide-react";
+import { motion } from "framer-motion";
 
 const Properties = () => {
   const [filteredProperties, setFilteredProperties] = useState(properties);
@@ -118,9 +120,9 @@ const Properties = () => {
 
       <div className="bg-nest-primary py-8 md:py-12">
         <div className="container mx-auto px-4">
-          <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">
-            Browse Properties
-          </h1>
+          <h1 className="text-3xl md:text-4xl font-bold text-white drop-shadow-[0_1px_4px_rgba(199,107,255,0.5)]">
+  Browse Properties
+</h1>
           <div className="flex items-center text-white/80">
             <MapPin className="h-4 w-4 mr-1" />
             <span>Find your perfect property from our listings</span>
@@ -182,94 +184,91 @@ const Properties = () => {
                   </div>
                 </div>
 
-                {/* Price Range */}
-                <div>
-                  <h4 className="font-medium mb-3">Price Range</h4>
-                  <div className="mb-6">
-                    <Slider
-                      defaultValue={[0, 2000000]}
-                      value={filters.priceRange}
-                      min={0}
-                      max={2000000}
-                      step={50000}
-                      onValueChange={handlePriceChange}
-                      className="my-6"
-                    />
-                    <div className="flex justify-between text-sm text-muted-foreground">
-                      <span>{formatPrice(filters.priceRange[0])}</span>
-                      <span>{formatPrice(filters.priceRange[1])}</span>
-                    </div>
-                  </div>
-                </div>
-
+               {/* Price Range */}
+<div>
+  <h4 className="font-medium mb-3 text-purple-400">Price Range</h4>
+  <div className="mb-6">
+    <Slider
+      defaultValue={[0, 2000000]}
+      value={filters.priceRange}
+      min={0}
+      max={2000000}
+      step={50000}
+      onValueChange={handlePriceChange}
+      className="my-6"
+    />
+    <div className="flex justify-between text-sm text-purple-300">
+      <span>{formatPrice(filters.priceRange[0])}</span>
+      <span>{formatPrice(filters.priceRange[1])}</span>
+    </div>
+  </div>
+</div>
                 {/* Property Type Filter */}
-                <div>
-                  <h4 className="font-medium mb-3">Property Type</h4>
-                  <div className="space-y-2">
-                    {["apartment", "house", "condo", "townhouse", "studio"].map((type) => (
-                      <div key={type} className="flex items-center">
-                        <Checkbox
-                          id={`type-${type}`}
-                          checked={filters.propertyType.includes(type)}
-                          onCheckedChange={() => handlePropertyTypeChange(type)}
-                        />
-                        <label
-                          htmlFor={`type-${type}`}
-                          className="ml-2 text-sm cursor-pointer capitalize"
-                        >
-                          {type}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Bedrooms Filter */}
-                <div>
-                  <h4 className="font-medium mb-3">Bedrooms</h4>
-                  <Select
-                    value={filters.bedrooms}
-                    onValueChange={(value) => setFilters(prev => ({ ...prev, bedrooms: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Any bedrooms" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectItem value="any">Any</SelectItem>
-                        <SelectItem value="1">1</SelectItem>
-                        <SelectItem value="2">2</SelectItem>
-                        <SelectItem value="3">3</SelectItem>
-                        <SelectItem value="4+">4+</SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </div>
+<div>
+  <h4 className="font-medium mb-3 text-purple-400">Property Type</h4>
+  <div className="space-y-2">
+    {["apartment", "house", "condo", "townhouse", "studio"].map((type) => (
+      <div key={type} className="flex items-center">
+        <Checkbox
+          id={`type-${type}`}
+          checked={filters.propertyType.includes(type)}
+          onCheckedChange={() => handlePropertyTypeChange(type)}
+        />
+        <label
+          htmlFor={`type-${type}`}
+          className="ml-2 text-sm cursor-pointer capitalize text-purple-300"
+        >
+          {type}
+        </label>
+      </div>
+    ))}
+  </div>
+</div>
+               {/* Bedrooms Filter */}
+<div>
+  <h4 className="font-medium mb-3 text-purple-400">Bedrooms</h4>
+  <Select
+    value={filters.bedrooms}
+    onValueChange={(value) => setFilters(prev => ({ ...prev, bedrooms: value }))}
+  >
+    <SelectTrigger className="text-purple-300">
+      <SelectValue placeholder="Any bedrooms" />
+    </SelectTrigger>
+    <SelectContent>
+      <SelectGroup>
+        <SelectItem value="any">Any</SelectItem>
+        <SelectItem value="1">1</SelectItem>
+        <SelectItem value="2">2</SelectItem>
+        <SelectItem value="3">3</SelectItem>
+        <SelectItem value="4+">4+</SelectItem>
+      </SelectGroup>
+    </SelectContent>
+  </Select>
+</div>
 
                 {/* Bathrooms Filter */}
-                <div>
-                  <h4 className="font-medium mb-3">Bathrooms</h4>
-                  <Select
-                    value={filters.bathrooms}
-                    onValueChange={(value) => setFilters(prev => ({ ...prev, bathrooms: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Any bathrooms" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectItem value="any">Any</SelectItem>
-                        <SelectItem value="1">1</SelectItem>
-                        <SelectItem value="2">2</SelectItem>
-                        <SelectItem value="3+">3+</SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
-          </div>
-
+<div>
+  <h4 className="font-medium mb-3 text-purple-400">Bathrooms</h4>
+  <Select
+    value={filters.bathrooms}
+    onValueChange={(value) => setFilters(prev => ({ ...prev, bathrooms: value }))}
+  >
+    <SelectTrigger className="text-purple-300">
+      <SelectValue placeholder="Any bathrooms" />
+    </SelectTrigger>
+    <SelectContent>
+      <SelectGroup>
+        <SelectItem value="any">Any</SelectItem>
+        <SelectItem value="1">1</SelectItem>
+        <SelectItem value="2">2</SelectItem>
+        <SelectItem value="3+">3+</SelectItem>
+      </SelectGroup>
+    </SelectContent>
+  </Select>
+</div>
+</div>
+</div>
+</div>
           {/* Filter Toggle (Mobile) */}
           <div className="lg:hidden mb-4">
             <Button
@@ -450,9 +449,11 @@ const Properties = () => {
 
               <div className="w-full sm:w-auto">
                 <Select defaultValue="newest">
-                  <SelectTrigger className="w-full sm:w-[180px]">
-                    <SelectValue placeholder="Sort by" />
-                  </SelectTrigger>
+            <SelectTrigger className="w-full sm:w-[180px] text-purple-500">
+  <SelectValue placeholder="Sort by" />
+</SelectTrigger>
+
+
                   <SelectContent>
                     <SelectGroup>
                       <SelectItem value="newest">Newest First</SelectItem>
@@ -484,15 +485,45 @@ const Properties = () => {
                 ))}
               </div>
             ) : (
-              <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-                <h3 className="text-xl font-bold mb-2 text-nest-dark">No properties found</h3>
-                <p className="text-muted-foreground mb-4">
-                  Try adjusting your filters to see more results
-                </p>
-                <Button onClick={resetFilters} className="bg-nest-primary hover:bg-nest-primary/90">
-                  Reset Filters
-                </Button>
-              </div>
+              
+<motion.div
+  className="bg-white rounded-lg shadow-sm p-8 text-center"
+  initial={{ opacity: 0, y: 20 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.6, ease: "easeOut" }}
+>
+  <motion.div
+    initial={{ scale: 0.8 }}
+    animate={{ scale: 1 }}
+    transition={{ type: "spring", stiffness: 120, delay: 0.2 }}
+    className="flex justify-center mb-4"
+  >
+    <SearchX className="w-10 h-10 text-nest-primary" />
+  </motion.div>
+
+  <motion.h3
+    className="text-xl font-bold mb-2 bg-gradient-to-r from-purple-600 via-pink-500 to-purple-600 bg-clip-text text-transparent"
+    initial={{ opacity: 0, y: 10 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay: 0.3, duration: 0.6 }}
+  >
+    No properties found
+  </motion.h3>
+
+  <motion.p
+    className="text-sm mb-4 bg-gradient-to-r from-purple-400 via-fuchsia-400 to-purple-400 bg-clip-text text-transparent"
+    initial={{ opacity: 0, y: 10 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay: 0.5, duration: 0.6 }}
+  >
+    Try adjusting your filters to see more results
+  </motion.p>
+
+  <Button onClick={resetFilters} className="bg-nest-primary hover:bg-nest-primary/90">
+    Reset Filters
+  </Button>
+</motion.div>
+              
             )}
 
             {/* Pagination */}

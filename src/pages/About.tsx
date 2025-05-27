@@ -86,19 +86,19 @@ const About = () => {
                         <div className="grid md:grid-cols-3 gap-6 mt-6">
                           {[{
                             name: "Fidel Ogolla",
-                            role: "CEO & Founder",
-                            bio: "15+ years in luxury real estate",
+                            role: "Founder",
+                            bio: "Dedicated top-notch tech and real estate ethusiast",
                           },{
-                            name: "Charlly O",
-                            role: "Co-Founder",
-                            bio: "lead in marketing with 5+ of experience",
+                            name: "Charlly Mush",
+                            role: "Founding Marketing lead",
+                            bio: "lead in marketing with 3+ of experience",
                           },{
                             name: "E.W Aisha",
                             role: "Software Developer",
                             bio: "Former tech lead at leading property platforms",
                           }, {
-                            name: "Victor",
-                            role: "Backend engineer",
+                            name: "Romano Victor Juma",
+                            role: "Software Developer",
                             bio: "Dedicated to exceptional customer experiences",
                           }].map((member, index) => (
                             <motion.div

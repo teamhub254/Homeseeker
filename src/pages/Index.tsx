@@ -31,7 +31,7 @@ const Index = () => {
               <div className="bg-[#f0e6ff] rounded-full p-4 mb-4">
                 <Search className="h-8 w-8 text-[#8b00ff]" />
               </div>
-              <h3 className="text-xl font-bold mb-2">Search Properties</h3>
+              <h3 className="text-xl font-bold mb-2 text-purple-700">Search Properties</h3>
               <p className="text-muted-foreground">
                 Browse our extensive list of properties and use filters to narrow down your search
               </p>
@@ -41,7 +41,7 @@ const Index = () => {
               <div className="bg-[#f0e6ff] rounded-full p-4 mb-4">
                 <Home className="h-8 w-8 text-[#8b00ff]" />
               </div>
-              <h3 className="text-xl font-bold mb-2">Tour Homes</h3>
+              <h3 className="text-xl font-bold mb-2 text-purple-700">Tour Homes</h3>
               <p className="text-muted-foreground">
                 Schedule viewings of properties that catch your eye to see them in person
               </p>
@@ -51,7 +51,7 @@ const Index = () => {
               <div className="bg-[#f0e6ff] rounded-full p-4 mb-4">
                 <DollarSign className="h-8 w-8 text-[#8b00ff]" />
               </div>
-              <h3 className="text-xl font-bold mb-2">Close the Deal</h3>
+              <h3 className="text-xl font-bold mb-2 text-purple-700">Close the Deal</h3>
               <p className="text-muted-foreground">
                 Make an offer, finalize the details, and move into your new home
               </p>
@@ -76,7 +76,7 @@ const Index = () => {
             </Button>
             <Button
               variant="outline"
-              className="border-white text-white hover:bg-white hover:text-[#8b00ff]"
+              className="border-white text-blue hover:bg-white hover:text-[#8b00ff]"
               size="lg"
             >
               List Your Property

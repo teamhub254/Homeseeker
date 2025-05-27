@@ -40,19 +40,21 @@ const Hero = () => {
   Your perfect home is just a search away.
 </motion.p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Button
-              className="bg-white text-nest-primary hover:bg-white/90"
-              size="lg"
-            >
-              For Sale
-            </Button>
-            <Button
-              variant="outline"
-              className="border-white text-white hover:bg-white hover:text-nest-primary"
-              size="lg"
-            >
-              For Rent
-            </Button>
+           <Button
+  className="bg-white text-nest-primary font-semibold hover:bg-white/90"
+  size="lg"
+>
+  For Rent
+</Button>
+
+<Button
+  className="bg-nest-secondary text-white font-semibold hover:bg-nest-secondary/90"
+  size="lg"
+>
+  For Sale
+</Button>
+
+
           </div>
         </div>
 

@@ -8,15 +8,16 @@ const FeaturedProperties = () => {
   const featuredProperties = properties.slice(0, 3);
   
   return (
-    <section className="py-12 px-4">
-      <div className="container mx-auto">
-        <div className="text-center mb-10">
-          <h2 className="text-3xl font-bold text-nest-dark">Featured Properties</h2>
-          <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">
-            Discover our handpicked selection of premium properties that might be your next dream home
-          </p>
-        </div>
-        
+   <section className="py-12 px-4">
+  <div className="container mx-auto">
+    <div className="text-center mb-10">
+      <h2 className="text-3xl font-bold bg-gradient-to-r from-fuchsia-400 via-pink-400 to-rose-400 bg-clip-text text-transparent">
+        Featured Properties
+      </h2>
+      <p className="text-neutral-300 mt-2 max-w-2xl mx-auto">
+        Discover our handpicked selection of premium properties that might be your next dream home
+      </p>
+    </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {featuredProperties.map((property) => (
             <PropertyCard
@@ -44,5 +45,4 @@ const FeaturedProperties = () => {
     </section>
   );
 };
-
 export default FeaturedProperties;
