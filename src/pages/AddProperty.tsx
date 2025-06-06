@@ -14,6 +14,8 @@ import { useNavigate } from "react-router-dom";
 import * as z from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import PropertyImageUpload from '@/components/PropertyImageUpload';
+import { Label } from '@/components/ui/label';
 
 // Form validation schema
 const propertySchema = z.object({
@@ -39,8 +41,9 @@ const AddProperty = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [role, setRole] = useState<string | null>(null);
-  const [images, setImages] = useState<File[]>([]);
+  const [images, setImages] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [propertyId, setPropertyId] = useState<string>('');
 
   // Fetch user role
   useEffect(() => {
@@ -90,15 +93,8 @@ const AddProperty = () => {
     },
   });
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const newFiles = Array.from(e.target.files);
-      setImages((prev) => [...prev, ...newFiles].slice(0, 6)); // Limit to 6 images
-    }
-  };
-
-  const removeImage = (index: number) => {
-    setImages((prev) => prev.filter((_, i) => i !== index));
+  const handleImagesUpdated = (newImages: string[]) => {
+    setImages(newImages);
   };
 
   const onSubmit = async (data: z.infer<typeof propertySchema>) => {
@@ -131,6 +127,7 @@ const AddProperty = () => {
           city: data.city,
           state: data.state,
           zip_code: data.zipCode,
+          images: [],
           user_id: user.id,
         })
         .select()
@@ -140,52 +137,16 @@ const AddProperty = () => {
         throw propertyError;
       }
 
-      // Handle image uploads if there are any
-      if (images.length > 0 && propertyData) {
-        const propertyId = propertyData.id;
-        const imageUrls = [];
-
-        for (const [index, image] of images.entries()) {
-          const filePath = `properties/${propertyId}/${index}-${Date.now()}`;
-
-          const { data: uploadData, error: uploadError } = await supabase.storage
-            .from('property_images')
-            .upload(filePath, image);
-
-          if (uploadError) {
-            console.error("Error uploading image:", uploadError);
-            continue;
-          }
-
-          // Get public URL for the uploaded image
-          const { data: publicUrlData } = supabase.storage
-            .from('property_images')
-            .getPublicUrl(filePath);
-
-          if (publicUrlData) {
-            imageUrls.push(publicUrlData.publicUrl);
-          }
-        }
-
-        // Update property with image URLs if any were uploaded successfully
-        if (imageUrls.length > 0 && propertyData) {
-          const { error: updateError } = await supabase
-            .from('properties')
-            .update({ images: imageUrls })
-            .eq('id', propertyId);
-
-          if (updateError) {
-            console.error("Error updating property with images:", updateError);
-          }
-        }
-      }
+      // Set the property ID for image uploads
+      setPropertyId(propertyData.id);
 
       toast({
         title: "Property submitted!",
-        description: "Your property has been added successfully.",
+        description: "Your property has been added successfully. You can now add images.",
       });
 
-      navigate("/properties");
+      // Don't navigate immediately to allow image uploads
+      // navigate("/properties");
     } catch (error: any) {
       console.error("Error adding property:", error);
       toast({
@@ -196,6 +157,11 @@ const AddProperty = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Add a function to handle final submission
+  const handleFinalSubmit = () => {
+    navigate("/properties");
   };
 
   return (
@@ -450,67 +416,25 @@ const AddProperty = () => {
                   </div>
                 </div>
 
-                {/* Images */}
-                <div>
-                  <h3 className="text-lg font-medium mb-4">Property Images</h3>
-                  <div className="border-2 border-dashed border-gray-300 p-6 rounded-md">
-                    <div className="flex flex-col items-center">
-                      <Upload className="h-10 w-10 text-gray-400 mb-2" />
-                      <p className="text-sm text-gray-500 mb-4">
-                        Drag and drop images here, or click to select files
-                      </p>
-                      <label htmlFor="file-upload" className="cursor-pointer">
-                        <div className="bg-[#8b00ff] text-white px-4 py-2 rounded-md hover:bg-[#8b00ff]/90 transition">
-                          Select Images
-                        </div>
-                        <input
-                          id="file-upload"
-                          type="file"
-                          multiple
-                          accept="image/*"
-                          onChange={handleFileChange}
-                          className="hidden"
-                        />
-                      </label>
-                    </div>
-
-                    {images.length > 0 && (
-                      <div className="mt-6">
-                        <p className="text-sm font-medium mb-2">
-                          {images.length} {images.length === 1 ? "image" : "images"} selected:
-                        </p>
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                          {images.map((file, index) => (
-                            <div key={index} className="relative group">
-                              <img
-                                src={URL.createObjectURL(file)}
-                                alt={`Property ${index + 1}`}
-                                className="w-full h-24 object-cover rounded-md"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => removeImage(index)}
-                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition"
-                                aria-label="Remove image"
-                                title="Remove image"
-                              >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    <p className="text-xs text-gray-500 mt-4">
-                      Upload up to 6 high-quality images. Recommended size: 1200x800px.
-                    </p>
-                  </div>
+                {/* Image Upload */}
+                <div className="space-y-2">
+                  <Label>Property Images</Label>
+                  <PropertyImageUpload
+                    propertyId={propertyId}
+                    onImagesUpdated={handleImagesUpdated}
+                  />
                 </div>
 
-                <div className="flex justify-end">
+                <div className="flex justify-end gap-4">
+                  {propertyId && (
+                    <Button
+                      type="button"
+                      onClick={handleFinalSubmit}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      Finish & View Property
+                    </Button>
+                  )}
                   <Button
                     type="submit"
                     disabled={isSubmitting}

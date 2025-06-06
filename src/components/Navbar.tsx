@@ -51,22 +51,22 @@ const Navbar = () => {
             alt="Vastiqa Logo"
             className="h-10 w-auto"
           />
-         <motion.span
-  className="text-xl font-bold text-[#8b00ff] block"
-  initial={{ opacity: 0, x: -20 }}
-  animate={{ opacity: 1, x: 0 }}
-  transition={{ duration: 0.8, ease: "easeOut" }}
->
-  Vastiqa
-  <motion.span
-    className="text-black text-sm block"
-    initial={{ opacity: 0, y: 10 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ delay: 0.4, duration: 0.6, ease: "easeOut" }}
-  >
-    Find Your Perfect Space
-  </motion.span>
-</motion.span>
+          <motion.span
+            className="text-xl font-bold text-[#8b00ff] block"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+          >
+            Vastiqa
+            <motion.span
+              className="text-black text-sm block"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, duration: 0.6, ease: "easeOut" }}
+            >
+              Find Your Perfect Space
+            </motion.span>
+          </motion.span>
         </Link>
 
         {/* Desktop Navigation */}
@@ -87,6 +87,12 @@ const Navbar = () => {
             <Link to="/my-listings" className="text-nest-dark hover:text-[#8b00ff] transition-colors flex items-center">
               <Building className="h-4 w-4 mr-1" />
               My Listings
+            </Link>
+          )}
+          {isLister && (
+            <Link to="/property-inquiries" className="text-nest-dark hover:text-[#8b00ff] transition-colors flex items-center">
+              <Building className="h-4 w-4 mr-1" />
+              Inquiries
             </Link>
           )}
         </div>
@@ -158,6 +164,16 @@ const Navbar = () => {
             >
               <Building className="h-4 w-4 mr-1" />
               My Listings
+            </Link>
+          )}
+          {isLister && (
+            <Link
+              to="/property-inquiries"
+              className="block py-2 text-nest-dark hover:text-[#8b00ff] flex items-center"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <Building className="h-4 w-4 mr-1" />
+              Inquiries
             </Link>
           )}
           {isLister && (

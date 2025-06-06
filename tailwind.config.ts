@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -66,10 +65,13 @@ export default {
 				nest: {
 					primary: '#4A90E2',
 					secondary: '#2AB7CA',
-					light: '#C5DCF7',
+					light: '#E8F4FD',
 					background: '#F6F9FC',
 					accent: '#FF5A5F',
-					dark: '#2C3E50'
+					dark: '#2C3E50',
+					'text-primary': '#1A1A1A',
+					'text-secondary': '#4A4A4A',
+					'text-muted': '#6B7280'
 				}
 			},
 			borderRadius: {

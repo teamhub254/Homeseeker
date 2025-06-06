@@ -1,16 +1,15 @@
-
 import { useState, useEffect } from "react";
 import { User as UserIcon, UserCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/use-toast";
@@ -33,7 +32,7 @@ const User = ({ className }: { className?: string }) => {
       (event, session) => {
         setSession(session);
         setLoading(false);
-        
+
         // Fetch profile data if user is logged in
         if (session?.user) {
           setTimeout(() => {
@@ -47,24 +46,24 @@ const User = ({ className }: { className?: string }) => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setLoading(false);
-      
+
       // Fetch profile data if user is logged in
       if (session?.user) {
         fetchProfile(session.user.id);
       }
     });
-    
+
     return () => subscription.unsubscribe();
   }, []);
 
   const fetchProfile = async (userId: string) => {
     try {
       const { data, error } = await supabase
-        .from('profiles')
+        .from('public.profiles')
         .select('first_name, last_name, avatar_url')
         .eq('user_id', userId)
         .single();
-      
+
       if (error) throw error;
       setProfile(data);
     } catch (error) {

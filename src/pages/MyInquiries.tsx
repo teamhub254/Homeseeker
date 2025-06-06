@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -6,7 +5,6 @@ import { AuthGuard } from "@/components/AuthGuard";
 import Navbar from "@/components/Navbar";
 import { toast } from "@/components/ui/use-toast";
 import { format } from "date-fns";
-import { Property, properties } from "@/data/properties";
 import { Link } from "react-router-dom";
 import {
   Table,
@@ -24,6 +22,10 @@ interface Inquiry {
   email: string;
   message: string;
   created_at: string;
+  property?: {
+    title: string;
+    id: string;
+  };
 }
 
 const MyInquiries = () => {
@@ -44,8 +46,11 @@ const MyInquiries = () => {
       if (!user) return;
 
       const { data, error } = await supabase
-        .from("property_inquiries")
-        .select("*")
+        .from("inquiries")
+        .select(`
+          *,
+          property:properties(id, title)
+        `)
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
@@ -64,10 +69,6 @@ const MyInquiries = () => {
     }
   };
 
-  const getPropertyDetails = (propertyId: string) => {
-    return properties.find(property => property.id === propertyId);
-  };
-
   const formatDate = (dateString: string) => {
     try {
       return format(new Date(dateString), "MMM d, yyyy");
@@ -80,7 +81,6 @@ const MyInquiries = () => {
     <AuthGuard>
       <div className="min-h-screen bg-gray-50">
         <Navbar />
-
         <div className="container mx-auto py-12 px-4">
           <h1 className="text-2xl font-bold text-nest-dark mb-8">My Inquiries</h1>
 
@@ -99,28 +99,25 @@ const MyInquiries = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {inquiries.map((inquiry) => {
-                    const property = getPropertyDetails(inquiry.property_id);
-                    return (
-                      <TableRow key={inquiry.id}>
-                        <TableCell className="font-medium">
-                          {formatDate(inquiry.created_at)}
-                        </TableCell>
-                        <TableCell>
-                          {property ? (
-                            <Link to={`/properties/${property.id}`} className="text-nest-primary hover:underline">
-                              {property.title}
-                            </Link>
-                          ) : (
-                            `Property #${inquiry.property_id}`
-                          )}
-                        </TableCell>
-                        <TableCell className="max-w-md">
-                          <div className="truncate">{inquiry.message}</div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
+                  {inquiries.map((inquiry) => (
+                    <TableRow key={inquiry.id}>
+                      <TableCell className="font-medium">
+                        {formatDate(inquiry.created_at)}
+                      </TableCell>
+                      <TableCell>
+                        {inquiry.property ? (
+                          <Link to={`/properties/${inquiry.property.id}`} className="text-nest-primary hover:underline">
+                            {inquiry.property.title}
+                          </Link>
+                        ) : (
+                          `Property #${inquiry.property_id}`
+                        )}
+                      </TableCell>
+                      <TableCell className="max-w-md">
+                        <div className="truncate">{inquiry.message}</div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
             </div>

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,6 +10,11 @@ import { toast } from "@/components/ui/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User, Phone, Mail, Upload, Building, Home } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import AvatarUpload from '@/components/AvatarUpload';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 
 interface Profile {
   id: string;
@@ -22,6 +26,14 @@ interface Profile {
   // role: string | null;
 }
 
+const profileSchema = z.object({
+  first_name: z.string().min(2, "First name must be at least 2 characters"),
+  last_name: z.string().min(2, "Last name must be at least 2 characters"),
+  phone: z.string().optional(),
+});
+
+type ProfileFormData = z.infer<typeof profileSchema>;
+
 const Profile = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -29,13 +41,17 @@ const Profile = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [propertyCount, setPropertyCount] = useState(0);
-  const [formData, setFormData] = useState({
-    first_name: "",
-    last_name: "",
-    phone: "",
-  });
   const [isPropertyLister, setIsPropertyLister] = useState(false);
   const navigate = useNavigate();
+
+  const form = useForm<ProfileFormData>({
+    resolver: zodResolver(profileSchema),
+    defaultValues: {
+      first_name: '',
+      last_name: '',
+      phone: '',
+    },
+  });
 
   useEffect(() => {
     if (user) {
@@ -47,40 +63,41 @@ const Profile = () => {
   const fetchProfile = async () => {
     try {
       setLoading(true);
-      
-      if (!user) return;
-      
       const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("user_id", user.id)
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user?.id)
         .single();
-        
-      if (error) throw error;
-      
-      // Set profile data
-      setProfile(data as Profile);
-      setFormData({
-        first_name: data.first_name || "",
-        last_name: data.last_name || "",
-        phone: data.phone || "",
-      });
-      
-      if (data.avatar_url) {
+
+      if (error) {
+        if (error.code === 'PGRST116') {
+          // Profile doesn't exist, create it
+          await createProfile();
+          return;
+        }
+        throw error;
+      }
+
+      if (data) {
+        form.reset({
+          first_name: data.first_name || '',
+          last_name: data.last_name || '',
+          phone: data.phone || '',
+        });
         setAvatarUrl(data.avatar_url);
       }
-      
+
       // Check if user is a property lister based on user metadata
       // This is a temporary solution until we have the role column
       const { data: userData } = await supabase.auth.getUser();
       if (userData?.user?.user_metadata?.is_lister) {
         setIsPropertyLister(true);
       }
-    } catch (error) {
-      console.error("Error fetching profile:", error);
+    } catch (error: any) {
+      console.error('Error fetching profile:', error);
       toast({
-        title: "Error fetching profile",
-        description: "There was a problem loading your profile information.",
+        title: "Error",
+        description: error.message || "Failed to load profile",
         variant: "destructive",
       });
     } finally {
@@ -88,61 +105,71 @@ const Profile = () => {
     }
   };
 
+  const createProfile = async () => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .insert({
+          user_id: user?.id,
+          first_name: '',
+          last_name: '',
+          phone: '',
+        });
+
+      if (error) throw error;
+
+      // Fetch the newly created profile
+      await fetchProfile();
+    } catch (error: any) {
+      console.error('Error creating profile:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create profile",
+        variant: "destructive",
+      });
+    }
+  };
+
   const fetchPropertyCount = async () => {
     try {
       if (!user) return;
-      
+
       const { count, error } = await supabase
         .from("properties")
         .select("*", { count: "exact", head: true })
         .eq("user_id", user.id);
-        
+
       if (error) throw error;
-      
+
       setPropertyCount(count || 0);
     } catch (error) {
       console.error("Error fetching property count:", error);
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const onSubmit = async (data: ProfileFormData) => {
     try {
       setUpdating(true);
-      
-      if (!user) return;
-      
-      const updates = {
-        user_id: user.id,
-        ...formData,
-        updated_at: new Date().toISOString(),
-      };
-      
       const { error } = await supabase
-        .from("profiles")
-        .update(updates)
-        .eq("user_id", user.id);
-        
+        .from('profiles')
+        .update({
+          first_name: data.first_name,
+          last_name: data.last_name,
+          phone: data.phone,
+        })
+        .eq('user_id', user?.id);
+
       if (error) throw error;
-      
+
       toast({
-        title: "Profile updated",
-        description: "Your profile has been updated successfully.",
+        title: "Success",
+        description: "Profile updated successfully",
       });
-    } catch (error) {
-      console.error("Error updating profile:", error);
+    } catch (error: any) {
+      console.error('Error updating profile:', error);
       toast({
-        title: "Error updating profile",
-        description: "There was a problem updating your profile.",
+        title: "Error",
+        description: error.message || "Failed to update profile",
         variant: "destructive",
       });
     } finally {
@@ -150,51 +177,8 @@ const Profile = () => {
     }
   };
 
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    try {
-      if (!e.target.files || e.target.files.length === 0) {
-        return;
-      }
-      
-      const file = e.target.files[0];
-      const fileExt = file.name.split('.').pop();
-      const filePath = `avatars/${user?.id}-${Math.random()}.${fileExt}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, file);
-        
-      if (uploadError) throw uploadError;
-      
-      // Get public URL
-      const { data } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
-        
-      if (data && data.publicUrl) {
-        setAvatarUrl(data.publicUrl);
-        
-        // Update profile with avatar URL
-        const { error: updateError } = await supabase
-          .from('profiles')
-          .update({ avatar_url: data.publicUrl })
-          .eq('user_id', user?.id);
-          
-        if (updateError) throw updateError;
-        
-        toast({
-          title: "Avatar updated",
-          description: "Your profile picture has been updated successfully.",
-        });
-      }
-    } catch (error) {
-      console.error("Error uploading avatar:", error);
-      toast({
-        title: "Error uploading image",
-        description: "There was a problem uploading your profile picture.",
-        variant: "destructive",
-      });
-    }
+  const handleAvatarUpdated = (newAvatarUrl: string) => {
+    setAvatarUrl(newAvatarUrl);
   };
 
   if (loading) {
@@ -211,14 +195,11 @@ const Profile = () => {
   }
 
   const getInitials = () => {
-    if (formData.first_name && formData.last_name) {
-      return `${formData.first_name[0]}${formData.last_name[0]}`.toUpperCase();
+    if (form.getValues('first_name') && form.getValues('last_name')) {
+      return `${form.getValues('first_name')[0]}${form.getValues('last_name')[0]}`.toUpperCase();
     }
     return user?.email?.[0].toUpperCase() || "U";
   };
-
-  // We're removing the redundant declaration of isPropertyLister here
-  // The state variable declared at the top is used directly
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -234,32 +215,17 @@ const Profile = () => {
               <Card>
                 <CardContent className="pt-6">
                   <div className="flex flex-col items-center">
-                    <div className="relative mb-4">
-                      <Avatar className="h-24 w-24">
-                        {avatarUrl ? (
-                          <AvatarImage src={avatarUrl} alt="Profile picture" />
-                        ) : null}
-                        <AvatarFallback className="text-lg">
-                          {getInitials()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <label
-                        htmlFor="avatar-upload"
-                        className="absolute bottom-0 right-0 bg-[#8b00ff] text-white p-1 rounded-full cursor-pointer"
-                      >
-                        <Upload className="h-4 w-4" />
-                        <input
-                          id="avatar-upload"
-                          type="file"
-                          className="hidden"
-                          accept="image/*"
-                          onChange={handleAvatarUpload}
-                        />
-                      </label>
+                    <div className="text-center">
+                      <h3 className="text-lg font-medium mb-4">Profile Picture</h3>
+                      <AvatarUpload
+                        userId={user.id}
+                        currentAvatarUrl={avatarUrl || undefined}
+                        onAvatarUpdated={handleAvatarUpdated}
+                      />
                     </div>
 
                     <h2 className="text-xl font-semibold mt-2">
-                      {formData.first_name} {formData.last_name}
+                      {form.getValues('first_name')} {form.getValues('last_name')}
                     </h2>
                     <p className="text-gray-500">{user?.email}</p>
 
@@ -269,11 +235,11 @@ const Profile = () => {
                         Property Lister
                       </div>
                     )}
-                    
+
                     <div className="w-full mt-6">
                       {isPropertyLister && (
-                        <Button 
-                          variant="outline" 
+                        <Button
+                          variant="outline"
                           className="w-full mb-3 justify-start"
                           onClick={() => navigate("/my-listings")}
                         >
@@ -281,29 +247,29 @@ const Profile = () => {
                           My Properties ({propertyCount})
                         </Button>
                       )}
-                      
-                      <Button 
-                        variant="outline" 
+
+                      <Button
+                        variant="outline"
                         className="w-full mb-3 justify-start"
                         onClick={() => navigate("/saved-properties")}
                       >
-                        <svg 
-                          className="mr-2 h-4 w-4" 
-                          xmlns="http://www.w3.org/2000/svg" 
-                          viewBox="0 0 24 24" 
-                          fill="none" 
-                          stroke="currentColor" 
-                          strokeWidth="2" 
-                          strokeLinecap="round" 
+                        <svg
+                          className="mr-2 h-4 w-4"
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
                           strokeLinejoin="round"
                         >
                           <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
                         </svg>
                         Saved Properties
                       </Button>
-                      
-                      <Button 
-                        variant="outline" 
+
+                      <Button
+                        variant="outline"
                         className="w-full justify-start"
                         onClick={() => navigate("/my-inquiries")}
                       >
@@ -323,76 +289,63 @@ const Profile = () => {
                   <CardTitle>Personal Information</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="first_name">First Name</Label>
-                        <div className="relative">
-                          <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                          <Input
-                            id="first_name"
-                            name="first_name"
-                            value={formData.first_name}
-                            onChange={handleInputChange}
-                            className="pl-10"
-                            placeholder="Your first name"
-                          />
-                        </div>
-                      </div>
+                  <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                      <div className="grid md:grid-cols-2 gap-6">
+                        <FormField
+                          control={form.control}
+                          name="first_name"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>First Name</FormLabel>
+                              <FormControl>
+                                <Input {...field} aria-label="First Name" placeholder="Enter your first name" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
 
-                      <div className="space-y-2">
-                        <Label htmlFor="last_name">Last Name</Label>
-                        <div className="relative">
-                          <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                          <Input
-                            id="last_name"
-                            name="last_name"
-                            value={formData.last_name}
-                            onChange={handleInputChange}
-                            className="pl-10"
-                            placeholder="Your last name"
-                          />
-                        </div>
-                      </div>
-                    </div>
+                        <FormField
+                          control={form.control}
+                          name="last_name"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Last Name</FormLabel>
+                              <FormControl>
+                                <Input {...field} aria-label="Last Name" placeholder="Enter your last name" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
 
-                    <div className="space-y-2">
-                      <Label htmlFor="phone">Phone Number</Label>
-                      <div className="relative">
-                        <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                        <Input
-                          id="phone"
+                        <FormField
+                          control={form.control}
                           name="phone"
-                          value={formData.phone}
-                          onChange={handleInputChange}
-                          className="pl-10"
-                          placeholder="Your phone number"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Phone Number</FormLabel>
+                              <FormControl>
+                                <Input {...field} aria-label="Phone Number" placeholder="Enter your phone number" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
                         />
                       </div>
-                    </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                        <Input
-                          id="email"
-                          value={user?.email || ""}
-                          className="pl-10 bg-gray-50"
-                          disabled
-                          readOnly
-                        />
+                      <div className="flex justify-end">
+                        <Button
+                          type="submit"
+                          disabled={loading}
+                          className="bg-[#8b00ff] hover:bg-[#8b00ff]/90"
+                        >
+                          {loading ? "Saving..." : "Save Changes"}
+                        </Button>
                       </div>
-                    </div>
-
-                    <Button
-                      type="submit"
-                      className="w-full bg-[#8b00ff] hover:bg-[#7a00e0] text-white"
-                      disabled={updating}
-                    >
-                      {updating ? "Saving..." : "Save Changes"}
-                    </Button>
-                  </form>
+                    </form>
+                  </Form>
                 </CardContent>
               </Card>
             </div>

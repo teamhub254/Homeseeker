@@ -1,9 +1,8 @@
-
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import User from '../components/User';
-import { properties } from '../data/properties';
+import PropertyChat from '../components/PropertyChat';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,178 +21,180 @@ import {
   Mail,
   Heart,
   Share,
-  ArrowLeft
+  ArrowLeft,
+  MessageSquare
 } from "lucide-react";
 
+interface Property {
+  id: string;
+  title: string;
+  description: string;
+  address: string;
+  city: string;
+  state: string;
+  zip_code: string;
+  price: number;
+  bedrooms: number;
+  bathrooms: number;
+  area: number;
+  property_type: string;
+  status: string;
+  images: string[];
+  created_at: string;
+  user_id: string;
+}
+
 const PropertyDetail = () => {
-  const { id } = useParams<{ id: string }>();
-  const [activeImage, setActiveImage] = useState(0);
-  const [isSaved, setIsSaved] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [contactFormData, setContactFormData] = useState({
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [property, setProperty] = useState<Property | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [inquiry, setInquiry] = useState({
     name: '',
     email: '',
-    phone: '',
     message: ''
   });
-  const { user } = useAuth();
-  const navigate = useNavigate();
-
-  const property = properties.find(p => p.id === id);
+  const [activeInquiry, setActiveInquiry] = useState<string | null>(null);
+  const [showChat, setShowChat] = useState(false);
+  const [userProfile, setUserProfile] = useState<any>(null);
 
   useEffect(() => {
-    if (user && property) {
-      checkIfPropertyIsSaved();
+    if (id) {
+      fetchProperty();
+      if (user) {
+        checkExistingInquiry();
+        fetchUserProfile();
+      }
     }
-  }, [user, property]);
+  }, [id, user]);
 
-  const checkIfPropertyIsSaved = async () => {
-    if (!user || !property) return;
-
+  const fetchUserProfile = async () => {
     try {
       const { data, error } = await supabase
-        .from('saved_properties')
+        .from('profiles')
         .select('*')
-        .eq('user_id', user.id)
-        .eq('property_id', property.id)
-        .maybeSingle();
+        .eq('user_id', user?.id)
+        .single();
 
       if (error) throw error;
 
-      setIsSaved(!!data);
+      if (data) {
+        setUserProfile(data);
+        setInquiry(prev => ({
+          ...prev,
+          name: `${data.first_name || ''} ${data.last_name || ''}`.trim(),
+          email: user?.email || ''
+        }));
+      }
     } catch (error) {
-      console.error('Error checking saved property:', error);
+      console.error('Error fetching user profile:', error);
     }
   };
 
-  const handleSaveProperty = async () => {
+  const fetchProperty = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('properties')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+      setProperty(data);
+    } catch (error) {
+      console.error('Error fetching property:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load property details. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const checkExistingInquiry = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('inquiries')
+        .select('id')
+        .eq('property_id', id)
+        .eq('user_id', user?.id)
+        .single();
+
+      if (data) {
+        setActiveInquiry(data.id);
+        setShowChat(true);
+      }
+    } catch (error) {
+      console.error('Error checking existing inquiry:', error);
+    }
+  };
+
+  const handleInquirySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!user) {
       toast({
         title: "Authentication required",
-        description: "Please log in to save properties",
+        description: "Please login to send an inquiry",
+        variant: "destructive"
       });
-      navigate('/login?redirectTo=' + encodeURIComponent(window.location.pathname));
+      navigate('/login');
       return;
     }
 
-    if (!property) return;
-
     try {
-      setIsLoading(true);
-
-      if (isSaved) {
-        // Unsave property
-        const { error } = await supabase
-          .from('saved_properties')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('property_id', property.id);
-
-        if (error) throw error;
-
-        setIsSaved(false);
-        toast({
-          title: "Property removed",
-          description: "Property has been removed from your saved list",
-        });
-      } else {
-        // Save property
-        const { error } = await supabase
-          .from('saved_properties')
-          .insert([
-            {
-              user_id: user.id,
-              property_id: property.id
-            }
-          ]);
-
-        if (error) throw error;
-
-        setIsSaved(true);
-        toast({
-          title: "Property saved",
-          description: "Property has been added to your saved list",
-        });
-      }
-    } catch (error) {
-      console.error('Error saving property:', error);
-      toast({
-        title: "Error",
-        description: "There was a problem saving the property",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleShareProperty = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: property?.title || 'Property Listing',
-        text: `Check out this property: ${property?.title}`,
-        url: window.location.href,
-      });
-    } else {
-      // Copy to clipboard fallback
-      navigator.clipboard.writeText(window.location.href);
-      toast({
-        title: "Link copied",
-        description: "Property link has been copied to clipboard",
-      });
-    }
-  };
-
-  const handleContactFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setContactFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleContactFormSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!property) return;
-
-    try {
-      setIsLoading(true);
-
-      const formData = {
-        ...contactFormData,
-        user_id: user?.id || null,
-        property_id: property.id
-      };
-
-      const { error } = await supabase
-        .from('property_inquiries')
-        .insert([formData]);
+      const { data, error } = await supabase
+        .from('inquiries')
+        .insert({
+          property_id: id,
+          user_id: user.id,
+          name: inquiry.name,
+          email: inquiry.email,
+          message: inquiry.message,
+          status: 'pending'
+        })
+        .select()
+        .single();
 
       if (error) throw error;
 
-      setContactFormData({
-        name: '',
-        email: '',
-        phone: '',
-        message: ''
+      setActiveInquiry(data.id);
+      setShowChat(true);
+      toast({
+        title: "Success",
+        description: "Your inquiry has been sent successfully.",
       });
 
-      toast({
-        title: "Inquiry sent",
-        description: "Your message has been sent to the property owner",
+      setInquiry({
+        name: '',
+        email: '',
+        message: ''
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error sending inquiry:', error);
       toast({
         title: "Error",
-        description: "There was a problem sending your message",
+        description: error.message || "Failed to send inquiry. Please try again.",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen">
+        <Navbar />
+        <div className="container mx-auto py-12 px-4">
+          <div className="flex items-center justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-nest-primary"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!property) {
     return (
@@ -217,24 +218,24 @@ const PropertyDetail = () => {
       <div className="bg-white border-b">
         <div className="container mx-auto py-3 px-4">
           <div className="flex items-center text-sm">
-            <Link to="/" className="text-muted-foreground hover:text-nest-primary">
+            <Link to="/" className="text-nest-text-secondary hover:text-nest-primary">
               Home
             </Link>
-            <span className="mx-2 text-muted-foreground">/</span>
-            <Link to="/properties" className="text-muted-foreground hover:text-nest-primary">
+            <span className="mx-2 text-nest-text-secondary">/</span>
+            <Link to="/properties" className="text-nest-text-secondary hover:text-nest-primary">
               Properties
             </Link>
-            <span className="mx-2 text-muted-foreground">/</span>
-            <span className="text-nest-primary">{property.title}</span>
+            <span className="mx-2 text-nest-text-secondary">/</span>
+            <span className="text-nest-text-primary">{property.title}</span>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto py-8 px-4">
+      <div className="container mx-auto px-4 py-8">
         {/* Back button */}
         <div className="mb-6">
           <Link to="/properties">
-            <Button variant="ghost" className="flex items-center gap-1 px-0 text-muted-foreground hover:text-nest-primary hover:bg-transparent">
+            <Button variant="ghost" className="flex items-center gap-1 px-0 text-nest-text-secondary hover:text-nest-primary hover:bg-transparent">
               <ArrowLeft className="h-4 w-4" />
               Back to listings
             </Button>
@@ -247,104 +248,71 @@ const PropertyDetail = () => {
             <h1 className="text-2xl md:text-3xl font-bold text-nest-dark mb-1">
               {property.title}
             </h1>
-            <div className="flex items-center text-muted-foreground">
+            <div className="flex items-center text-nest-text-secondary">
               <MapPin className="h-4 w-4 mr-1 text-nest-secondary" />
               <span>
-                {property.address}, {property.city}, {property.state} {property.zipCode}
+                {property.address}, {property.city}, {property.state} {property.zip_code}
               </span>
             </div>
           </div>
           <div className="mt-4 md:mt-0">
             <div className="text-2xl md:text-3xl font-bold text-nest-primary">
               ${property.price.toLocaleString()}
-              {!property.forSale && <span className="text-lg text-muted-foreground">/mo</span>}
+              {property.status === 'rented' && <span className="text-lg text-muted-foreground">/mo</span>}
             </div>
           </div>
         </div>
 
         {/* Property Images */}
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-8">
-          <div className="relative h-[300px] md:h-[500px]">
+        <div className="mb-8">
+          <div className="aspect-video w-full rounded-lg overflow-hidden">
             <img
-              src={property.images[activeImage]}
+              src={property.images && property.images.length > 0 ? property.images[0] : '/placeholder-property.jpg'}
               alt={property.title}
               className="w-full h-full object-cover"
             />
-
-            {/* For Sale/Rent Badge */}
-            <Badge
-              className={`absolute top-4 left-4 ${property.forSale ? 'bg-nest-secondary' : 'bg-nest-accent'}`}
-            >
-              {property.forSale ? 'For Sale' : 'For Rent'}
-            </Badge>
-
-            {/* Action Buttons */}
-            <div className="absolute top-4 right-4 flex space-x-2">
-              <Button
-                variant="secondary"
-                size="icon"
-                className={`${isSaved ? 'bg-nest-accent text-white' : 'bg-white/80 hover:bg-white text-nest-accent hover:text-nest-accent'} rounded-full h-10 w-10`}
-                onClick={handleSaveProperty}
-                disabled={isLoading}
-              >
-                <Heart className="h-5 w-5" fill={isSaved ? "currentColor" : "none"} />
-              </Button>
-              <Button
-                variant="secondary"
-                size="icon"
-                className="bg-white/80 hover:bg-white text-nest-dark hover:text-nest-dark rounded-full h-10 w-10"
-                onClick={handleShareProperty}
-              >
-                <Share className="h-5 w-5" />
-              </Button>
+          </div>
+          {property.images && property.images.length > 1 && (
+            <div className="grid grid-cols-4 gap-2 mt-2">
+              {property.images.slice(1).map((image, index) => (
+                <div key={index} className="aspect-video rounded-lg overflow-hidden">
+                  <img
+                    src={image}
+                    alt={`${property.title} - Image ${index + 2}`}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ))}
             </div>
-          </div>
-
-          {/* Thumbnail Images */}
-          <div className="grid grid-cols-3 gap-2 p-2">
-            {property.images.map((image, index) => (
-              <button
-                key={index}
-                onClick={() => setActiveImage(index)}
-                className={`h-24 relative rounded overflow-hidden ${index === activeImage ? 'ring-2 ring-nest-primary' : ''
-                  }`}
-              >
-                <img
-                  src={image}
-                  alt={`${property.title} ${index + 1}`}
-                  className="w-full h-full object-cover"
-                />
-              </button>
-            ))}
-          </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-2 space-y-6">
             {/* Property Overview */}
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h2 className="text-xl font-bold mb-4 text-nest-dark">Property Overview</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="flex flex-col items-center p-4 bg-gray-50 rounded">
                   <Bed className="h-6 w-6 text-nest-primary mb-2" />
-                  <span className="text-sm text-muted-foreground">Bedrooms</span>
-                  <span className="font-bold">{property.bedrooms}</span>
+                  <span className="text-sm text-nest-text-secondary">Bedrooms</span>
+                  <span className="font-bold text-nest-text-primary">{property.bedrooms}</span>
                 </div>
                 <div className="flex flex-col items-center p-4 bg-gray-50 rounded">
                   <Bath className="h-6 w-6 text-nest-primary mb-2" />
-                  <span className="text-sm text-muted-foreground">Bathrooms</span>
-                  <span className="font-bold">{property.bathrooms}</span>
+                  <span className="text-sm text-nest-text-secondary">Bathrooms</span>
+                  <span className="font-bold text-nest-text-primary">{property.bathrooms}</span>
                 </div>
                 <div className="flex flex-col items-center p-4 bg-gray-50 rounded">
                   <Square className="h-6 w-6 text-nest-primary mb-2" />
-                  <span className="text-sm text-muted-foreground">Area</span>
-                  <span className="font-bold">{property.area} sq ft</span>
+                  <span className="text-sm text-nest-text-secondary">Area</span>
+                  <span className="font-bold text-nest-text-primary">{property.area} sq ft</span>
                 </div>
                 <div className="flex flex-col items-center p-4 bg-gray-50 rounded">
                   <Calendar className="h-6 w-6 text-nest-primary mb-2" />
-                  <span className="text-sm text-muted-foreground">Year Built</span>
-                  <span className="font-bold">{property.yearBuilt}</span>
+                  <span className="text-sm text-nest-text-secondary">Listed</span>
+                  <span className="font-bold text-nest-text-primary">{new Date(property.created_at).toLocaleDateString()}</span>
                 </div>
               </div>
             </div>
@@ -352,151 +320,85 @@ const PropertyDetail = () => {
             {/* Description */}
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h2 className="text-xl font-bold mb-4 text-nest-dark">Description</h2>
-              <p className="text-muted-foreground">
+              <p className="text-nest-text-secondary">
                 {property.description}
               </p>
-            </div>
-
-            {/* Features */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-xl font-bold mb-4 text-nest-dark">Features</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-y-2">
-                {property.features.map((feature, index) => (
-                  <div key={index} className="flex items-center">
-                    <div className="h-2 w-2 rounded-full bg-nest-primary mr-2" />
-                    <span>{feature}</span>
-                  </div>
-                ))}
-              </div>
             </div>
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Contact Agent */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-xl font-bold mb-4 text-nest-dark">Contact Agent</h2>
-              <div className="flex items-center mb-4">
-                <div className="h-12 w-12 rounded-full bg-nest-light text-nest-primary flex items-center justify-center mr-3">
-                  <User className="h-6 w-6" />
-                </div>
-                <div>
-                  <p className="font-medium">{property.owner.name}</p>
-                  <p className="text-sm text-muted-foreground">Property Agent</p>
-                </div>
+            {/* Inquiry Form or Chat */}
+            {showChat && activeInquiry ? (
+              <div className="bg-white rounded-lg shadow-sm">
+                <PropertyChat
+                  propertyId={property?.id || ''}
+                  inquiryId={activeInquiry}
+                />
               </div>
-              <div className="space-y-3 mb-4">
-                <a href={`tel:${property.owner.phone}`} className="flex items-center text-muted-foreground hover:text-nest-primary">
-                  <Phone className="h-4 w-4 mr-2" />
-                  {property.owner.phone}
-                </a>
-                <a href={`mailto:${property.owner.email}`} className="flex items-center text-muted-foreground hover:text-nest-primary">
-                  <Mail className="h-4 w-4 mr-2" />
-                  {property.owner.email}
-                </a>
+            ) : (
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <h2 className="text-xl font-bold mb-4 text-nest-dark">Send Inquiry</h2>
+                <form onSubmit={handleInquirySubmit} className="space-y-4">
+                  <div>
+                    <Label htmlFor="name">Name</Label>
+                    <Input
+                      id="name"
+                      name="name"
+                      value={inquiry.name}
+                      onChange={(e) => setInquiry(prev => ({ ...prev, name: e.target.value }))}
+                      required
+                      className="bg-white text-nest-text-primary"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      value={inquiry.email}
+                      onChange={(e) => setInquiry(prev => ({ ...prev, email: e.target.value }))}
+                      required
+                      className="bg-white text-nest-text-primary"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="message">Message</Label>
+                    <Textarea
+                      id="message"
+                      name="message"
+                      value={inquiry.message}
+                      onChange={(e) => setInquiry(prev => ({ ...prev, message: e.target.value }))}
+                      required
+                      className="bg-white text-nest-text-primary min-h-[100px]"
+                      placeholder="Enter your message here..."
+                    />
+                  </div>
+                  <Button type="submit" className="w-full bg-nest-primary hover:bg-nest-primary/90">
+                    Send Inquiry
+                  </Button>
+                </form>
               </div>
-              <form onSubmit={handleContactFormSubmit} className="space-y-4">
-                <div>
-                  <Label htmlFor="name">Your Name</Label>
-                  <Input
-                    id="name"
-                    name="name"
-                    value={contactFormData.name}
-                    onChange={handleContactFormChange}
-                    required
-                    className="w-full px-4 py-2 border border-gray-200 rounded"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="email">Your Email</Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={contactFormData.email}
-                    onChange={handleContactFormChange}
-                    required
-                    className="w-full px-4 py-2 border border-gray-200 rounded"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="phone">Your Phone</Label>
-                  <Input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    value={contactFormData.phone}
-                    onChange={handleContactFormChange}
-                    className="w-full px-4 py-2 border border-gray-200 rounded"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="message">Message</Label>
-                  <Textarea
-                    id="message"
-                    name="message"
-                    rows={3}
-                    value={contactFormData.message}
-                    onChange={handleContactFormChange}
-                    required
-                    className="w-full px-4 py-2 border border-gray-200 rounded"
-                    defaultValue={`I'm interested in this property: ${property.title}`}
-                  />
-                </div>
-                <Button
-                  type="submit"
-                  className="w-full bg-nest-primary hover:bg-nest-primary/90"
-                  disabled={isLoading}
-                >
-                  {isLoading ? "Sending..." : "Send Message"}
-                </Button>
-              </form>
-            </div>
+            )}
 
-            {/* Similar Properties */}
+            {/* Share */}
             <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-xl font-bold mb-4 text-nest-dark">Similar Properties</h2>
-              <div className="space-y-4">
-                {properties
-                  .filter(p => p.id !== property.id && p.type === property.type)
-                  .slice(0, 2)
-                  .map(similarProperty => (
-                    <Link key={similarProperty.id} to={`/properties/${similarProperty.id}`} className="block">
-                      <div className="flex border rounded overflow-hidden hover:shadow-md transition-shadow">
-                        <div className="h-24 w-24 flex-shrink-0">
-                          <img
-                            src={similarProperty.imageUrl}
-                            alt={similarProperty.title}
-                            className="h-full w-full object-cover"
-                          />
-                        </div>
-                        <div className="flex-1 p-3">
-                          <h3 className="font-medium line-clamp-1">{similarProperty.title}</h3>
-                          <p className="text-nest-primary text-sm font-bold">
-                            ${similarProperty.price.toLocaleString()}
-                            {!similarProperty.forSale && <span className="text-xs text-muted-foreground">/mo</span>}
-                          </p>
-                          <div className="flex text-xs text-muted-foreground">
-                            <span className="mr-2">{similarProperty.bedrooms} beds</span>
-                            <span className="mr-2">{similarProperty.bathrooms} baths</span>
-                            <span>{similarProperty.area} sq ft</span>
-                          </div>
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
+              <h2 className="text-xl font-bold mb-4 text-nest-dark">Share Property</h2>
+              <div className="flex space-x-2">
+                <Button variant="outline" className="flex-1">
+                  <Share className="h-4 w-4 mr-2" />
+                  Share
+                </Button>
+                <Button variant="outline" className="flex-1">
+                  <Heart className="h-4 w-4 mr-2" />
+                  Save
+                </Button>
               </div>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Footer */}
-      <footer className="bg-nest-dark py-8 px-4 text-white mt-12">
-        <div className="container mx-auto text-center">
-          <p>&copy; {new Date().getFullYear()} Vastiqa. All rights reserved.</p>
-        </div>
-      </footer>
     </div>
   );
 };

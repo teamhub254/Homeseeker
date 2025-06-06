@@ -22,37 +22,37 @@ const Hero = () => {
             </div>
           </div>
           <motion.h1
-  className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4"
-  initial={{ opacity: 0, y: 30 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ duration: 0.8, ease: "easeOut" }}
->
-  Find Your Dream Home
-</motion.h1>
+            className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+          >
+            Find Your Dream Home
+          </motion.h1>
 
-<motion.p
-  className="text-lg md:text-xl opacity-90 mb-8"
-  initial={{ opacity: 0, y: 20 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ delay: 0.4, duration: 0.8, ease: "easeOut" }}
->
-  Discover thousands of properties for sale and rent across the country.
-  Your perfect home is just a search away.
-</motion.p>
+          <motion.p
+            className="text-lg md:text-xl opacity-90 mb-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.8, ease: "easeOut" }}
+          >
+            Discover thousands of properties for sale and rent across the country.
+            Your perfect home is just a search away.
+          </motion.p>
           <div className="flex flex-wrap justify-center gap-4">
-           <Button
-  className="bg-white text-nest-primary font-semibold hover:bg-white/90"
-  size="lg"
->
-  For Rent
-</Button>
+            <Button
+              className="bg-white text-nest-primary font-semibold hover:bg-white/90"
+              size="lg"
+            >
+              For Rent
+            </Button>
 
-<Button
-  className="bg-nest-secondary text-white font-semibold hover:bg-nest-secondary/90"
-  size="lg"
->
-  For Sale
-</Button>
+            <Button
+              className="bg-nest-secondary text-white font-semibold hover:bg-nest-secondary/90"
+              size="lg"
+            >
+              For Sale
+            </Button>
 
 
           </div>
