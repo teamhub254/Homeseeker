@@ -183,54 +183,50 @@ const PropertyChat = ({ propertyId, inquiryId }: PropertyChatProps) => {
             .subscribe();
     };
 
-    const sendMessage = async (e: React.FormEvent) => {
+    const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!newMessage.trim() || !user) return;
 
-        try {
-            setSending(true);
-            setError(null);
-
-            const { data: inquiryData, error: inquiryError } = await supabase
-                .from('inquiries')
-                .select('id')
-                .eq('id', inquiryId)
-                .single();
-
-            if (inquiryError) {
-                throw new Error('Inquiry not found or access denied');
+        const newMessageObj = {
+            id: Date.now().toString(), // Temporary ID
+            inquiry_id: inquiryId,
+            sender_id: user.id,
+            content: newMessage.trim(),
+            created_at: new Date().toISOString(),
+            sender: {
+                email: user.email,
+                profile: {
+                    first_name: user.user_metadata?.first_name || '',
+                    last_name: user.user_metadata?.last_name || ''
+                }
             }
+        };
 
+        // Optimistically add the message to the UI
+        setMessages(prev => [...prev, newMessageObj]);
+        setNewMessage('');
+
+        try {
             const { error } = await supabase
-                .from('chat_messages')
-                .insert({
-                    inquiry_id: inquiryId,
-                    property_id: propertyId,
-                    sender_id: user.id,
-                    content: newMessage.trim(),
-                    is_read: false
-                });
+                .from('inquiry_messages')
+                .insert([
+                    {
+                        inquiry_id: inquiryId,
+                        sender_id: user.id,
+                        content: newMessageObj.content
+                    }
+                ]);
 
             if (error) throw error;
-
-            await supabase
-                .from('inquiries')
-                .update({ status: 'responded' })
-                .eq('id', inquiryId)
-                .eq('status', 'pending');
-
-            setNewMessage('');
-            await fetchMessages();
-        } catch (error: any) {
+        } catch (error) {
             console.error('Error sending message:', error);
-            setError(error.message || 'Failed to send message. Please try again.');
+            // Remove the optimistic message if there was an error
+            setMessages(prev => prev.filter(m => m.id !== newMessageObj.id));
             toast({
                 title: "Error",
-                description: error.message || "Failed to send message. Please try again.",
+                description: "Failed to send message. Please try again.",
                 variant: "destructive",
             });
-        } finally {
-            setSending(false);
         }
     };
 
@@ -364,7 +360,7 @@ const PropertyChat = ({ propertyId, inquiryId }: PropertyChatProps) => {
                 )}
             </ScrollArea>
 
-            <form onSubmit={sendMessage} className="p-4 border-t bg-gray-50">
+            <form onSubmit={handleSendMessage} className="p-4 border-t bg-gray-50">
                 <div className="flex gap-2">
                     <Input
                         value={newMessage}

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,16 +10,23 @@ import { toast } from "@/components/ui/use-toast";
 import { Property, properties } from "@/data/properties";
 import { Trash2 } from "lucide-react";
 
-interface SavedProperty {
+interface Property {
   id: string;
-  property_id: string;
+  title: string;
+  address: string;
+  price: number;
+  bedrooms: number;
+  bathrooms: number;
+  area: number;
+  type: string;
+  image_url: string;
+  for_sale: boolean;
 }
 
 const SavedProperties = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [savedProperties, setSavedProperties] = useState<Property[]>([]);
-  const [savedIds, setSavedIds] = useState<SavedProperty[]>([]);
+  const [properties, setProperties] = useState<Property[]>([]);
 
   useEffect(() => {
     if (user) {
@@ -32,29 +38,35 @@ const SavedProperties = () => {
     try {
       setLoading(true);
 
-      if (!user) return;
+      // First get the saved property IDs
+      const { data: favorites, error: favoritesError } = await supabase
+        .from('favorites')
+        .select('property_id')
+        .eq('user_id', user?.id);
 
-      const { data, error } = await supabase
-        .from("saved_properties")
-        .select("id, property_id")
-        .eq("user_id", user.id);
+      if (favoritesError) throw favoritesError;
 
-      if (error) throw error;
+      if (!favorites || favorites.length === 0) {
+        setProperties([]);
+        return;
+      }
 
-      // Save the saved property IDs with their database IDs
-      setSavedIds(data);
+      const propertyIds = favorites.map(fav => fav.property_id);
 
-      // Filter properties from our data file
-      const savedProps = properties.filter(prop =>
-        data.some(saved => saved.property_id === prop.id)
-      );
+      // Then get the full property details
+      const { data: propertiesData, error: propertiesError } = await supabase
+        .from('properties')
+        .select('*')
+        .in('id', propertyIds);
 
-      setSavedProperties(savedProps);
-    } catch (error) {
-      console.error("Error fetching saved properties:", error);
+      if (propertiesError) throw propertiesError;
+
+      setProperties(propertiesData || []);
+    } catch (error: any) {
+      console.error('Error fetching saved properties:', error);
       toast({
         title: "Error",
-        description: "Failed to load your saved properties.",
+        description: "Failed to load saved properties. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -66,21 +78,16 @@ const SavedProperties = () => {
     try {
       if (!user) return;
 
-      // Find the saved property database ID
-      const savedProperty = savedIds.find(saved => saved.property_id === propertyId);
-
-      if (!savedProperty) return;
-
       const { error } = await supabase
-        .from("saved_properties")
+        .from("favorites")
         .delete()
-        .eq("id", savedProperty.id);
+        .eq("user_id", user.id)
+        .eq("property_id", propertyId);
 
       if (error) throw error;
 
       // Update UI
-      setSavedProperties(savedProperties.filter(prop => prop.id !== propertyId));
-      setSavedIds(savedIds.filter(saved => saved.property_id !== propertyId));
+      setProperties(properties.filter(prop => prop.id !== propertyId));
 
       toast({
         title: "Property removed",
@@ -100,62 +107,38 @@ const SavedProperties = () => {
     <AuthGuard>
       <div className="min-h-screen bg-gray-50">
         <Navbar />
-
-        <div className="container mx-auto py-12 px-4">
-          <h1 className="text-2xl font-bold text-nest-dark mb-8">Saved Properties</h1>
-
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-nest-primary"></div>
-            </div>
-          ) : savedProperties.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {savedProperties.map(property => (
-                <div key={property.id} className="relative group">
+        <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+          <div className="px-4 py-6 sm:px-0">
+            <h1 className="text-2xl font-semibold text-gray-900 mb-6">Saved Properties</h1>
+            {loading ? (
+              <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-nest-primary"></div>
+              </div>
+            ) : properties.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-gray-500">You haven't saved any properties yet.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {properties.map((property) => (
                   <PropertyCard
+                    key={property.id}
                     id={property.id}
                     title={property.title}
-                    address={`${property.address}, ${property.city}, ${property.state}`}
+                    address={property.address}
                     price={property.price}
                     bedrooms={property.bedrooms}
                     bathrooms={property.bathrooms}
                     area={property.area}
                     type={property.type}
-                    imageUrl={property.imageUrl}
-                    forSale={property.forSale}
+                    imageUrl={property.image_url}
+                    forSale={property.for_sale}
                   />
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={() => removeSavedProperty(property.id)}
-                  >
-                    <Trash2 className="h-4 w-4 mr-1" />
-                    Remove
-                  </Button>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <h2 className="text-xl font-semibold mb-4">You haven't saved any properties yet</h2>
-              <p className="text-muted-foreground mb-6">
-                Browse our listings and save properties you're interested in
-              </p>
-              <Link to="/properties">
-                <Button className="bg-nest-primary hover:bg-nest-primary/90">
-                  Browse Properties
-                </Button>
-              </Link>
-            </div>
-          )}
-        </div>
-
-        <footer className="bg-nest-dark py-8 px-4 text-white mt-auto">
-          <div className="container mx-auto text-center">
-            <p>&copy; {new Date().getFullYear()} Vastiqa. All rights reserved.</p>
+                ))}
+              </div>
+            )}
           </div>
-        </footer>
+        </main>
       </div>
     </AuthGuard>
   );

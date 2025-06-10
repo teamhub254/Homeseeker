@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
 import { Mail, Phone, MapPin, Clock, Send } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Contact = () => {
   const [name, setName] = useState("");
@@ -13,22 +14,58 @@ const Contact = () => {
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
+    setLoading(true);
 
-    setTimeout(() => {
+    try {
+      // First, save the contact message to the database
+      const { error: dbError } = await supabase
+        .from('contact_messages')
+        .insert([
+          {
+            name,
+            email,
+            message,
+            status: 'pending'
+          }
+        ]);
+
+      if (dbError) throw dbError;
+
+      // Then send the email using the Edge Function
+      const { error: emailError } = await supabase.functions.invoke('send-contact-email', {
+        body: {
+          to: 'teamhub254@gmail.com',
+          from: email,
+          name: name,
+          message: message
+        }
+      });
+
+      if (emailError) throw emailError;
+
       toast({
         title: "Message sent!",
-        description: "Thank you for contacting us. We'll respond shortly.",
+        description: "We'll get back to you as soon as possible.",
       });
-      setName("");
-      setEmail("");
-      setSubject("");
-      setMessage("");
-      setIsSubmitting(false);
-    }, 1500);
+
+      // Reset form
+      setName('');
+      setEmail('');
+      setMessage('');
+    } catch (error: any) {
+      console.error('Error sending message:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send message. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -154,11 +191,11 @@ const Contact = () => {
                     <div className="flex justify-end">
                       <Button
                         type="submit"
-                        disabled={isSubmitting}
+                        disabled={loading}
                         className="bg-[#8b00ff] hover:bg-[#8b00ff]/90 flex items-center gap-2 px-6 py-2 text-white rounded-md"
                       >
                         <Send className="h-4 w-4" />
-                        {isSubmitting ? "Sending..." : "Send Message"}
+                        {loading ? "Sending..." : "Send Message"}
                       </Button>
                     </div>
                   </form>

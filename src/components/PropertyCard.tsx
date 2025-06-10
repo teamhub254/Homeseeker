@@ -1,4 +1,3 @@
-
 import {
   Card,
   CardContent,
@@ -7,9 +6,12 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Heart, Home, MapPin } from "lucide-react";
+import { Heart, Home, MapPin, Share2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Bed, Bath, Ruler } from "lucide-react";
+import { toast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 
 interface PropertyCardProps {
@@ -37,15 +39,94 @@ const PropertyCard = ({
   imageUrl,
   forSale
 }: PropertyCardProps) => {
+  const { user } = useAuth();
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('en-KE', {
+      style: 'currency',
+      currency: 'KES',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(price);
+  };
+
+  const handleShare = async () => {
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: title,
+          text: `Check out this property: ${title}`,
+          url: window.location.href
+        });
+      } else {
+        // Fallback for browsers that don't support Web Share API
+        const url = window.location.href;
+        await navigator.clipboard.writeText(url);
+        toast({
+          title: "Link copied!",
+          description: "Property link has been copied to clipboard.",
+        });
+      }
+    } catch (error) {
+      console.error('Error sharing property:', error);
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      if (!user) {
+        toast({
+          title: "Please sign in",
+          description: "You need to be signed in to save properties.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { error } = await supabase
+        .from('favorites')
+        .insert([
+          {
+            user_id: user.id,
+            property_id: id
+          }
+        ]);
+
+      if (error) {
+        if (error.code === '23505') { // Unique violation
+          // Property is already saved
+          toast({
+            title: "Already saved",
+            description: "This property is already in your saved properties.",
+          });
+        } else {
+          throw error;
+        }
+      } else {
+        toast({
+          title: "Property saved!",
+          description: "This property has been added to your saved properties.",
+        });
+      }
+    } catch (error) {
+      console.error('Error saving property:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save property. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
       <div className="relative">
         {/* Property Image */}
-        <Link to={`/properties/${id}`}>
+        <Link to={`/property/${id}`}>
           <img
             src={imageUrl}
             alt={title}
-            className="h-52 w-full object-cover"
+            className="w-full h-48 object-cover"
           />
         </Link>
 
@@ -57,22 +138,33 @@ const PropertyCard = ({
         </Badge>
 
         {/* Favorite Button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="absolute top-2 right-2 bg-white/80 hover:bg-white text-nest-accent hover:text-nest-accent rounded-full h-8 w-8"
-        >
-          <Heart className="h-5 w-5" />
-        </Button>
+        <div className="absolute top-2 right-2 flex space-x-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleShare}
+            className="bg-white/90 hover:bg-white"
+          >
+            <Share2 className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleSave}
+            className="bg-white/90 hover:bg-white"
+          >
+            <Heart className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       <CardHeader className="p-4 pb-2">
         <div className="flex justify-between items-start">
-          <Link to={`/properties/${id}`} className="hover:text-nest-primary">
+          <Link to={`/property/${id}`} className="hover:text-nest-primary">
             <h3 className="font-bold text-lg line-clamp-1">{title}</h3>
           </Link>
           <p className="text-lg font-bold text-nest-primary">
-            ${price.toLocaleString()}
+            {formatPrice(price)}
             {!forSale && <span className="text-sm text-muted-foreground">/mo</span>}
           </p>
         </div>
@@ -112,7 +204,7 @@ const PropertyCard = ({
         <Badge variant="outline" className="text-xs">
           {type}
         </Badge>
-        <Link to={`/properties/${id}`}>
+        <Link to={`/property/${id}`}>
           <Button variant="link" className="p-0 h-auto text-nest-primary hover:text-nest-primary/80">
             View Details
           </Button>

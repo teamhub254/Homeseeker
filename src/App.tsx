@@ -18,6 +18,7 @@ import AddProperty from "./pages/AddProperty";
 import EditProperty from "./pages/EditProperty";
 import NotFound from "./pages/NotFound";
 import PropertyInquiries from "./pages/PropertyInquiries";
+import { AuthGuard } from "@/components/AuthGuard";
 
 import './App.css';
 
@@ -32,18 +33,18 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/properties" element={<Properties />} />
-            <Route path="/properties/:id" element={<PropertyDetail />} />
             <Route path="/login" element={<Auth />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/saved-properties" element={<SavedProperties />} />
-            <Route path="/my-inquiries" element={<MyInquiries />} />
-            <Route path="/my-listings" element={<MyListings />} />
-            <Route path="/about" element={<About />} />
+            <Route path="/properties" element={<Properties />} />
+            <Route path="/property/:id" element={<PropertyDetail />} />
+            <Route path="/add-property" element={<AuthGuard><AddProperty /></AuthGuard>} />
+            <Route path="/edit-property/:id" element={<AuthGuard><EditProperty /></AuthGuard>} />
+            <Route path="/my-listings" element={<AuthGuard><MyListings /></AuthGuard>} />
+            <Route path="/saved-properties" element={<AuthGuard><SavedProperties /></AuthGuard>} />
             <Route path="/contact" element={<Contact />} />
-            <Route path="/add-property" element={<AddProperty />} />
-            <Route path="/edit-property/:id" element={<EditProperty />} />
-            <Route path="/property-inquiries" element={<PropertyInquiries />} />
+            <Route path="/my-inquiries" element={<AuthGuard><MyInquiries /></AuthGuard>} />
+            <Route path="/property-inquiries" element={<AuthGuard><PropertyInquiries /></AuthGuard>} />
+            <Route path="/profile" element={<AuthGuard><Profile /></AuthGuard>} />
+            <Route path="/about" element={<About />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

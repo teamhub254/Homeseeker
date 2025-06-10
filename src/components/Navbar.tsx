@@ -6,11 +6,13 @@ import User from "@/components/User";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
+import { useNavigate } from 'react-router-dom';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (user) {
@@ -21,22 +23,13 @@ const Navbar = () => {
   }, [user]);
 
   const fetchUserRole = async () => {
-    try {
-      if (!user) return;
-      // Fetch role from users table
-      const { data, error } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', user.id)
-        .single();
-      if (error) {
-        console.error('Error fetching user role:', error);
-        return;
-      }
-      setUserRole(data?.role || null);
-    } catch (error) {
-      console.error('Error fetching user role:', error);
-    }
+    if (!user) return;
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single();
+    if (!error && data) setUserRole(data.role);
   };
 
   const isLister = userRole === 'lister';
@@ -107,7 +100,17 @@ const Navbar = () => {
               </Button>
             </Link>
           )}
-          <User className="ml-2" />
+          {user ? (
+            <User className="ml-2" />
+          ) : (
+            <Button
+              variant="default"
+              onClick={() => navigate('/login')}
+              className="bg-nest-primary hover:bg-nest-primary/90 text-white"
+            >
+              Sign In
+            </Button>
+          )}
         </div>
 
         {/* Mobile Menu Button */}
