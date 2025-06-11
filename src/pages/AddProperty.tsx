@@ -134,31 +134,50 @@ const AddProperty = () => {
     try {
       setIsSubmitting(true);
 
-      const { error } = await supabase.from("properties").insert({
-        user_id: user.id,
-        title: data.title,
-        description: data.description,
-        price: parseFloat(data.price),
-        bedrooms: parseInt(data.bedrooms),
-        bathrooms: parseInt(data.bathrooms),
-        property_type: data.type,
-        status: data.for_sale === "true" ? "sale" : "rent",
-        area: parseFloat(data.area),
-        address: data.address,
-        city: data.city,
-        state: data.state,
-        zip_code: data.zipCode,
-        images: data.images,
-      });
+      // First create the property without images
+      const { data: propertyData, error: propertyError } = await supabase
+        .from("properties")
+        .insert({
+          user_id: user.id,
+          title: data.title,
+          description: data.description,
+          price: parseFloat(data.price),
+          bedrooms: parseInt(data.bedrooms),
+          bathrooms: parseInt(data.bathrooms),
+          property_type: data.type,
+          status: data.for_sale === "true" ? "sale" : "rent",
+          area: parseFloat(data.area),
+          address: data.address,
+          city: data.city,
+          state: data.state,
+          zip_code: data.zipCode,
+          images: [], // Start with empty images array
+        })
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (propertyError) throw propertyError;
+
+      // Set the property ID for image uploads
+      setPropertyId(propertyData.id);
 
       toast({
         title: "Success",
-        description: "Property added successfully",
+        description: "Property created successfully. You can now upload images.",
       });
 
-      navigate("/my-listings");
+      // If there are already uploaded images, update the property
+      if (images.length > 0) {
+        const { error: updateError } = await supabase
+          .from("properties")
+          .update({ images: images })
+          .eq('id', propertyData.id);
+
+        if (updateError) throw updateError;
+      }
+
+      // Don't navigate immediately, let user upload images first
+      // navigate("/my-listings");
     } catch (error: any) {
       console.error("Error adding property:", error);
       toast({
@@ -173,7 +192,7 @@ const AddProperty = () => {
 
   // Add a function to handle final submission
   const handleFinalSubmit = () => {
-    navigate("/properties");
+    navigate("/my-listings");
   };
 
   return (
@@ -446,10 +465,16 @@ const AddProperty = () => {
                 {/* Image Upload */}
                 <div className="space-y-2">
                   <Label>Property Images</Label>
-                  <PropertyImageUpload
-                    propertyId={propertyId}
-                    onImagesUpdated={handleImagesUpdated}
-                  />
+                  {propertyId ? (
+                    <PropertyImageUpload
+                      propertyId={propertyId}
+                      onImagesUpdated={handleImagesUpdated}
+                    />
+                  ) : (
+                    <div className="text-sm text-gray-500">
+                      Please save the property details first to upload images
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex justify-end gap-4">
