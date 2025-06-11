@@ -59,7 +59,7 @@ const User = ({ className }: { className?: string }) => {
   const fetchProfile = async (userId: string) => {
     try {
       const { data, error } = await supabase
-        .from('public.profiles')
+        .from('profiles')
         .select('first_name, last_name, avatar_url')
         .eq('user_id', userId)
         .single();

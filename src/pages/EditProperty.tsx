@@ -34,6 +34,24 @@ const propertySchema = z.object({
     zipCode: z.string().min(5, "Zip code is required"),
 });
 
+const propertyTypes = [
+    "Apartments",
+    "Maisonettes",
+    "Bungalows",
+    "Bedsitters & Single Rooms",
+    "Villas",
+    "Townhouses"
+];
+
+const kenyaCounties = [
+    "Mombasa", "Kwale", "Kilifi", "Tana River", "Lamu", "Taita Taveta", "Garissa", "Wajir", "Mandera",
+    "Marsabit", "Isiolo", "Meru", "Tharaka Nithi", "Embu", "Kitui", "Machakos", "Makueni", "Nyandarua",
+    "Nyeri", "Kirinyaga", "Murang'a", "Kiambu", "Turkana", "West Pokot", "Samburu", "Trans Nzoia",
+    "Uasin Gishu", "Elgeyo Marakwet", "Nandi", "Baringo", "Laikipia", "Nakuru", "Narok", "Kajiado",
+    "Kericho", "Bomet", "Kakamega", "Vihiga", "Bungoma", "Busia", "Siaya", "Kisumu", "Homa Bay",
+    "Migori", "Kisii", "Nyamira", "Nairobi"
+];
+
 const EditProperty = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
@@ -73,9 +91,9 @@ const EditProperty = () => {
     const fetchUserRole = async () => {
         if (!user) return;
         const { data, error } = await supabase
-            .from('users')
+            .from('profiles')
             .select('role')
-            .eq('id', user.id)
+            .eq('user_id', user.id)
             .single();
         if (!error && data) setRole(data.role);
     };
@@ -259,7 +277,7 @@ const EditProperty = () => {
                                         />
                                         <FormField
                                             control={form.control}
-                                            name="propertyType"
+                                            name="type"
                                             render={({ field }) => (
                                                 <FormItem>
                                                     <FormLabel>Property Type</FormLabel>
@@ -270,12 +288,11 @@ const EditProperty = () => {
                                                             </SelectTrigger>
                                                         </FormControl>
                                                         <SelectContent>
-                                                            <SelectItem value="house">House</SelectItem>
-                                                            <SelectItem value="apartment">Apartment</SelectItem>
-                                                            <SelectItem value="condo">Condo</SelectItem>
-                                                            <SelectItem value="townhouse">Townhouse</SelectItem>
-                                                            <SelectItem value="land">Land</SelectItem>
-                                                            <SelectItem value="commercial">Commercial</SelectItem>
+                                                            {propertyTypes.map((type) => (
+                                                                <SelectItem key={type} value={type}>
+                                                                    {type}
+                                                                </SelectItem>
+                                                            ))}
                                                         </SelectContent>
                                                     </Select>
                                                     <FormMessage />
@@ -414,13 +431,24 @@ const EditProperty = () => {
                                         />
                                         <FormField
                                             control={form.control}
-                                            name="city"
+                                            name="location"
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel>City</FormLabel>
-                                                    <FormControl>
-                                                        <Input placeholder="New York" {...field} />
-                                                    </FormControl>
+                                                    <FormLabel>Location</FormLabel>
+                                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                        <FormControl>
+                                                            <SelectTrigger>
+                                                                <SelectValue placeholder="Select county" />
+                                                            </SelectTrigger>
+                                                        </FormControl>
+                                                        <SelectContent>
+                                                            {kenyaCounties.map((county) => (
+                                                                <SelectItem key={county} value={county}>
+                                                                    {county}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
                                                     <FormMessage />
                                                 </FormItem>
                                             )}

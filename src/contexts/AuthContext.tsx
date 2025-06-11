@@ -1,4 +1,3 @@
-
 import {
   createContext,
   useContext,
@@ -27,23 +26,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const syncUserRole = async (user: User) => {
       try {
         const { data, error } = await supabase
-          .from('users')
-          .select('id')
-          .eq('id', user.id)
+          .from('profiles')
+          .select('id, role')
+          .eq('user_id', user.id)
           .single();
 
         if (error && error.code === 'PGRST116') {
-          // User not found in users table, insert with default role
-          await supabase.from('users').insert([
+          // Profile not found, create it
+          const nameParts = (user.user_metadata?.full_name || 'New User').split(' ');
+          const firstName = nameParts[0] || '';
+          const lastName = nameParts.slice(1).join(' ') || '';
+
+          // Check if user is a lister from metadata
+          const isLister = user.user_metadata?.is_lister === true;
+
+          const { error: insertError } = await supabase.from('profiles').insert([
             {
-              id: user.id,
-              full_name: user.user_metadata?.full_name || 'New User',
-              role: 'seeker', // default role
+              user_id: user.id,
+              first_name: firstName,
+              last_name: lastName,
+              email: user.email,
+              phone: null,
+              avatar_url: null,
+              role: isLister ? 'lister' : 'renter',
+              is_admin: false
             },
           ]);
+
+          if (insertError) {
+            console.error('Error creating profile:', insertError);
+          }
+        } else if (data) {
+          // If profile exists, ensure role is correct based on metadata
+          const isLister = user.user_metadata?.is_lister === true;
+          if (isLister && data.role !== 'lister') {
+            // Update role if user should be a lister but isn't
+            const { error: updateError } = await supabase
+              .from('profiles')
+              .update({ role: 'lister' })
+              .eq('user_id', user.id);
+
+            if (updateError) {
+              console.error('Error updating profile role:', updateError);
+            }
+          }
         }
       } catch (err) {
-        console.error('Error syncing user role:', err);
+        console.error('Error syncing user profile:', err);
       }
     };
 

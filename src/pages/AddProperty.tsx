@@ -18,24 +18,47 @@ import PropertyImageUpload from '@/components/PropertyImageUpload';
 import { Label } from '@/components/ui/label';
 
 // Form validation schema
-const propertySchema = z.object({
-  title: z.string().min(5, "Title must be at least 5 characters"),
-  description: z.string().min(20, "Description must be at least 20 characters"),
+const formSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  description: z.string().min(1, "Description is required"),
   price: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
     message: "Price must be a positive number",
   }),
-  bedrooms: z.string(),
-  bathrooms: z.string(),
-  propertyType: z.string(),
-  status: z.string(),
+  bedrooms: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
+    message: "Bedrooms must be a positive number",
+  }),
+  bathrooms: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
+    message: "Bathrooms must be a positive number",
+  }),
   area: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
     message: "Area must be a positive number",
   }),
-  address: z.string().min(5, "Address is required"),
-  city: z.string().min(2, "City is required"),
-  state: z.string().min(2, "State is required"),
-  zipCode: z.string().min(5, "Zip code is required"),
+  type: z.string().min(1, "Property type is required"),
+  address: z.string().min(1, "Address is required"),
+  city: z.string().min(1, "City is required"),
+  state: z.string().min(1, "State is required"),
+  zipCode: z.string().min(1, "Zip code is required"),
+  images: z.array(z.string()).optional(),
+  for_sale: z.string().default("true"),
 });
+
+const propertyTypes = [
+  "Apartments",
+  "Maisonettes",
+  "Bungalows",
+  "Bedsitters & Single Rooms",
+  "Villas",
+  "Townhouses"
+];
+
+const kenyaCounties = [
+  "Mombasa", "Kwale", "Kilifi", "Tana River", "Lamu", "Taita Taveta", "Garissa", "Wajir", "Mandera",
+  "Marsabit", "Isiolo", "Meru", "Tharaka Nithi", "Embu", "Kitui", "Machakos", "Makueni", "Nyandarua",
+  "Nyeri", "Kirinyaga", "Murang'a", "Kiambu", "Turkana", "West Pokot", "Samburu", "Trans Nzoia",
+  "Uasin Gishu", "Elgeyo Marakwet", "Nandi", "Baringo", "Laikipia", "Nakuru", "Narok", "Kajiado",
+  "Kericho", "Bomet", "Kakamega", "Vihiga", "Bungoma", "Busia", "Siaya", "Kisumu", "Homa Bay",
+  "Migori", "Kisii", "Nyamira", "Nairobi"
+];
 
 const AddProperty = () => {
   const navigate = useNavigate();
@@ -75,21 +98,22 @@ const AddProperty = () => {
     );
   }
 
-  const form = useForm<z.infer<typeof propertySchema>>({
-    resolver: zodResolver(propertySchema),
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
       description: "",
       price: "",
       bedrooms: "1",
       bathrooms: "1",
-      propertyType: "house",
-      status: "sale",
       area: "",
+      type: "",
       address: "",
       city: "",
       state: "",
       zipCode: "",
+      images: [],
+      for_sale: "true",
     },
   });
 
@@ -97,61 +121,49 @@ const AddProperty = () => {
     setImages(newImages);
   };
 
-  const onSubmit = async (data: z.infer<typeof propertySchema>) => {
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
     if (!user) {
       toast({
-        title: "Authentication required",
-        description: "Please login to add a property",
-        variant: "destructive"
+        title: "Error",
+        description: "You must be logged in to add a property",
+        variant: "destructive",
       });
-      navigate('/login');
       return;
     }
 
-    setIsSubmitting(true);
-
     try {
-      // First, insert the property data
-      const { data: propertyData, error: propertyError } = await supabase
-        .from('properties')
-        .insert({
-          title: data.title,
-          description: data.description,
-          price: parseFloat(data.price),
-          bedrooms: data.bedrooms,
-          bathrooms: data.bathrooms,
-          property_type: data.propertyType,
-          status: data.status,
-          area: parseFloat(data.area),
-          address: data.address,
-          city: data.city,
-          state: data.state,
-          zip_code: data.zipCode,
-          images: [],
-          user_id: user.id,
-        })
-        .select()
-        .single();
+      setIsSubmitting(true);
 
-      if (propertyError) {
-        throw propertyError;
-      }
-
-      // Set the property ID for image uploads
-      setPropertyId(propertyData.id);
-
-      toast({
-        title: "Property submitted!",
-        description: "Your property has been added successfully. You can now add images.",
+      const { error } = await supabase.from("properties").insert({
+        user_id: user.id,
+        title: data.title,
+        description: data.description,
+        price: parseFloat(data.price),
+        bedrooms: parseInt(data.bedrooms),
+        bathrooms: parseInt(data.bathrooms),
+        property_type: data.type,
+        status: data.for_sale === "true" ? "sale" : "rent",
+        area: parseFloat(data.area),
+        address: data.address,
+        city: data.city,
+        state: data.state,
+        zip_code: data.zipCode,
+        images: data.images,
       });
 
-      // Don't navigate immediately to allow image uploads
-      // navigate("/properties");
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Property added successfully",
+      });
+
+      navigate("/my-listings");
     } catch (error: any) {
       console.error("Error adding property:", error);
       toast({
-        title: "Error adding property",
-        description: error.message || "There was a problem adding your property. Please try again.",
+        title: "Error",
+        description: error.message || "Failed to add property",
         variant: "destructive",
       });
     } finally {
@@ -212,7 +224,7 @@ const AddProperty = () => {
 
                     <FormField
                       control={form.control}
-                      name="propertyType"
+                      name="type"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Property Type</FormLabel>
@@ -223,12 +235,11 @@ const AddProperty = () => {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="house">House</SelectItem>
-                              <SelectItem value="apartment">Apartment</SelectItem>
-                              <SelectItem value="condo">Condo</SelectItem>
-                              <SelectItem value="townhouse">Townhouse</SelectItem>
-                              <SelectItem value="land">Land</SelectItem>
-                              <SelectItem value="commercial">Commercial</SelectItem>
+                              {propertyTypes.map((type) => (
+                                <SelectItem key={type} value={type}>
+                                  {type}
+                                </SelectItem>
+                              ))}
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -238,7 +249,7 @@ const AddProperty = () => {
 
                     <FormField
                       control={form.control}
-                      name="status"
+                      name="for_sale"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Listing Type</FormLabel>
@@ -249,8 +260,8 @@ const AddProperty = () => {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="sale">For Sale</SelectItem>
-                              <SelectItem value="rent">For Rent</SelectItem>
+                              <SelectItem value="true">For Sale</SelectItem>
+                              <SelectItem value="false">For Rent</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -377,10 +388,21 @@ const AddProperty = () => {
                       name="city"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>City</FormLabel>
-                          <FormControl>
-                            <Input placeholder="New York" {...field} />
-                          </FormControl>
+                          <FormLabel>Location</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select county" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {kenyaCounties.map((county) => (
+                                <SelectItem key={county} value={county}>
+                                  {county}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -407,7 +429,12 @@ const AddProperty = () => {
                         <FormItem>
                           <FormLabel>Zip Code</FormLabel>
                           <FormControl>
-                            <Input placeholder="10001" {...field} />
+                            <Input
+                              type="text"
+                              {...field}
+                              onChange={(e) => field.onChange(e.target.value)}
+                              placeholder="Enter zip code"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
