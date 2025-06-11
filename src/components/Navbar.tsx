@@ -94,7 +94,10 @@ const Navbar = () => {
         <div className="hidden md:flex items-center space-x-3">
           {isLister && (
             <Link to="/add-property">
-              <Button variant="outline" className="flex items-center gap-1 border-[#8b00ff] text-[#8b00ff] hover:text-white hover:bg-[#8b00ff]">
+              <Button
+                variant="outline"
+                className="flex items-center gap-1 border-2 border-[#8b00ff] text-[#8b00ff] bg-white hover:bg-[#8b00ff] hover:text-white transition-colors duration-200"
+              >
                 <Plus className="h-4 w-4" />
                 <span>Add Property</span>
               </Button>
@@ -106,7 +109,7 @@ const Navbar = () => {
             <Button
               variant="default"
               onClick={() => navigate('/login')}
-              className="bg-nest-primary hover:bg-nest-primary/90 text-white"
+              className="bg-[#8b00ff] hover:bg-[#8b00ff]/90 text-white font-medium"
             >
               Sign In
             </Button>

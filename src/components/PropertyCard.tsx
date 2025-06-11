@@ -123,11 +123,18 @@ const PropertyCard = ({
       <div className="relative">
         {/* Property Image */}
         <Link to={`/property/${id}`}>
-          <img
-            src={imageUrl}
-            alt={title}
-            className="w-full h-48 object-cover"
-          />
+          <div className="w-full h-48 bg-gray-100 relative">
+            <img
+              src={imageUrl}
+              alt={title}
+              className="w-full h-48 object-cover"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.src = '/placeholder-property.jpg';
+                target.onerror = null; // Prevent infinite loop
+              }}
+            />
+          </div>
         </Link>
 
         {/* Sale/Rent Badge */}
