@@ -61,29 +61,29 @@ const Index = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 px-4 bg-[#8b00ff] text-white">
-        <div className="container mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-4">Ready to Find Your Perfect Space?</h2>
-          <p className="text-xl opacity-90 mb-8 max-w-2xl mx-auto">
-            Start your search today and discover the perfect property that meets all your needs
-          </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <Button
-              className="bg-white text-[#8b00ff] hover:bg-white/90"
-              size="lg"
-            >
-              Browse Properties
-            </Button>
-            <Button
-              variant="outline"
-              className="border-white text-blue hover:bg-white hover:text-[#8b00ff]"
-              size="lg"
-            >
-              List Your Property
-            </Button>
-          </div>
-        </div>
-      </section>
+<section className="py-16 px-4 bg-[#110e1c] text-white">
+  <div className="container mx-auto text-center">
+    <h2 className="text-3xl font-bold mb-4">Ready to Find Your Perfect Space?</h2>
+    <p className="text-xl opacity-90 mb-8 max-w-2xl mx-auto">
+      Start your search today and discover the perfect property that meets all your needs
+    </p>
+    <div className="flex flex-wrap justify-center gap-4">
+      <Button
+        className="bg-white text-[#110e1c] hover:bg-white/90"
+        size="lg"
+      >
+        Browse Properties
+      </Button>
+      <Button
+        
+        className="border-white text-white hover:bg-white hover:text-[#110e1c]"
+        size="lg"
+      >
+        List Your Property
+      </Button>
+    </div>
+  </div>
+</section>
 
       {/* Footer */}
       <footer className="bg-[#2c2c2c] py-12 px-4 text-white">
