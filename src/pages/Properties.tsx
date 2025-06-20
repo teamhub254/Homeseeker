@@ -196,7 +196,7 @@ const Properties = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#110e1c]">
       <Navbar />
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
@@ -214,9 +214,11 @@ const Properties = () => {
             </div>
           </div>
 
-          <div className="flex flex-col lg:flex-row gap-6">
+          <div className="flex flex-col lg:flex-row gap-6 items-start">
+
             {/* Filters */}
-            <div className="w-full lg:w-64 space-y-4">
+            <div className="w-full lg:w-64 space-y-4 sticky top-24 self-start">
+
               <Accordion type="single" collapsible className="w-full bg-white rounded-lg shadow-sm">
                 {/* Property Type Filter */}
                 <AccordionItem value="property-type">
@@ -466,5 +468,4 @@ const Properties = () => {
     </div>
   );
 };
-
 export default Properties;
